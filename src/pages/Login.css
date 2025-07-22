@@ -1,0 +1,20 @@
+.login-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: url('/assets/login-bg.jpg') no-repeat center center / cover;
+}
+
+.login-form {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+}
+
+.forgot-link,
+.signup-link {
+  margin-top: 1rem;
+  text-align: center;
+  display: block;
+}
