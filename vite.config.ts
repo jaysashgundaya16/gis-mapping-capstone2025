@@ -10,7 +10,7 @@ export default defineConfig({
     react(),
     legacy()
   ],
-  base: "CAPSTONE" ,
+  base: "gis-mapping-capstone2025",
   test: {
     globals: true,
     environment: 'jsdom',
