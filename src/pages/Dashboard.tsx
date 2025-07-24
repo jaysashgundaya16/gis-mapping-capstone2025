@@ -73,7 +73,6 @@ const Dashboard: React.FC = () => {
             </IonCardTitle>
           </IonCardHeader>
           <IonCardContent>
-            <p>Use interactive maps to view field health and soil layers.</p>
             <MapView />
           </IonCardContent>
         </IonCard>
