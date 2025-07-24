@@ -48,7 +48,7 @@ const Dashboard: React.FC = () => {
 
       <IonHeader translucent>
         <IonToolbar style={{ background: 'transparent' }}>
-          <IonTitle style={{ color: 'white' }}>Dashboard</IonTitle>
+          <IonTitle></IonTitle>
           <IonButtons slot="end">
             <IonButton color="light" fill="clear" onClick={() => router.push('/', 'root')}>
               <IonIcon icon={logOutOutline} />
@@ -59,17 +59,12 @@ const Dashboard: React.FC = () => {
       </IonHeader>
 
       <IonContent fullscreen className="dashboard-bg">
-        <div className="dashboard-title">Welcome to BUGTA - GIS Mapping System</div>
-
-        
-
-        
-
+    
         {/* 📍 GIS Mapping Tool */}
         <IonCard className="ion-card-custom">
           <IonCardHeader>
             <IonCardTitle>
-              <IonIcon icon={mapOutline} /> &nbsp; GIS Mapping Tools
+              <IonIcon icon={mapOutline} /> &nbsp; Soil Nutrient Crop Profiling
             </IonCardTitle>
           </IonCardHeader>
           <IonCardContent>
