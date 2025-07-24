@@ -1,4 +1,5 @@
 import React from 'react';
+import MapView from '../components/MapView';
 import {
   IonPage,
   IonHeader,
@@ -60,35 +61,9 @@ const Dashboard: React.FC = () => {
       <IonContent fullscreen className="dashboard-bg">
         <div className="dashboard-title">Welcome to BUGTA - GIS Mapping System</div>
 
-        {/* 👤 Profile Card */}
-        <IonCard className="ion-card-custom">
-          <IonCardHeader>
-            <IonCardTitle>
-              <IonIcon icon={personCircle} /> &nbsp; User Profile
-            </IonCardTitle>
-          </IonCardHeader>
-          <IonCardContent>
-            <p><strong>Name:</strong> Juan Dela Cruz</p>
-            <p><strong>Email:</strong> juan@example.com</p>
-            <p><strong>Role:</strong> Farmer / Field Officer</p>
-          </IonCardContent>
-        </IonCard>
+        
 
-        {/* 🗺️ Soil Data Viewer */}
-        <IonCard className="ion-card-custom">
-          <IonCardHeader>
-            <IonCardTitle>
-              <IonIcon icon={analyticsOutline} /> &nbsp; Soil Nutrient Data
-            </IonCardTitle>
-          </IonCardHeader>
-          <IonCardContent>
-            <p>Soil nitrogen levels are moderate in Region A.</p>
-            <p>Phosphorus content is high in Region B.</p>
-            <IonButton expand="block" color="warning" onClick={() => alert('This will link to a soil data viewer.')}>
-              View Full Soil Report
-            </IonButton>
-          </IonCardContent>
-        </IonCard>
+        
 
         {/* 📍 GIS Mapping Tool */}
         <IonCard className="ion-card-custom">
@@ -99,9 +74,7 @@ const Dashboard: React.FC = () => {
           </IonCardHeader>
           <IonCardContent>
             <p>Use interactive maps to view field health and soil layers.</p>
-            <IonButton expand="block" color="tertiary" onClick={() => alert('This will open your GIS map viewer.')}>
-              Launch Map
-            </IonButton>
+            <MapView />
           </IonCardContent>
         </IonCard>
       </IonContent>
