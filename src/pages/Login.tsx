@@ -3,7 +3,6 @@ import {
   IonButton,
   IonButtons,
   IonContent,
-  IonDatetime,
   IonHeader,
   IonInput,
   IonItem,
@@ -15,9 +14,21 @@ import {
   useIonAlert
 } from '@ionic/react';
 
-const SignupPage: React.FC = () => {
+const LoginPage: React.FC = () => {
   const router = useIonRouter();
   const [presentAlert] = useIonAlert();
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Show success message (simulate login)
+    presentAlert({
+      header: 'Welcome Back!',
+      message: 'You have successfully logged in.',
+      buttons: ['OK'],
+      onDidDismiss: () => router.push('/dashboard', 'root'), // Replace with actual redirect
+    });
+  };
 
   return (
     <IonPage>
@@ -40,7 +51,7 @@ const SignupPage: React.FC = () => {
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(to left, #dee7fa, #050505);
+            background: linear-gradient(to left, #050505, #dee7fa);
             padding: 20px;
           }
           .glow-box {
@@ -50,11 +61,11 @@ const SignupPage: React.FC = () => {
             background: rgba(0, 0, 0, 0.7);
             backdrop-filter: blur(8px);
             width: 100%;
-            max-width: 600px;
+            max-width: 500px;
             padding: 40px 32px;
           }
           .form-title {
-            font-size: 2.5rem;
+            font-size: 2.3rem;
             margin-bottom: 0.5rem;
             text-align: center;
             color: white;
@@ -63,7 +74,7 @@ const SignupPage: React.FC = () => {
             font-size: 1rem;
             margin-bottom: 2rem;
             text-align: center;
-            color: #ddd;
+            color: #ccc;
           }
           .ion-item-custom {
             margin-bottom: 16px;
@@ -84,8 +95,8 @@ const SignupPage: React.FC = () => {
             <IonButton className="hover-glow" fill="clear" onClick={() => router.push('/', 'back')}>
               <span style={{ fontSize: '0.95rem' }}>Home</span>
             </IonButton>
-            <IonButton className="hover-glow" fill="outline" onClick={() => router.push('/login', 'forward')}>
-              <span>Log In</span>
+            <IonButton className="hover-glow" fill="outline" onClick={() => router.push('/signup', 'forward')}>
+              <span>Sign Up</span>
             </IonButton>
           </IonButtons>
         </IonToolbar>
@@ -94,52 +105,19 @@ const SignupPage: React.FC = () => {
       <IonContent fullscreen>
         <div className="section-container">
           <div className="glow-box">
-            <h1 className="form-title">Create Your Account</h1>
-            <p className="form-subtext">Sign up to access soil nutrient data, GIS tools, and more.</p>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                presentAlert({
-                  header: 'Congratulations!',
-                  message: 'Your account has been successfully registered.',
-                  buttons: ['OK'],
-                  onDidDismiss: () => router.push('/login', 'root'), // ✅ Redirect to login
-                });
-              }}
-            >
+            <h1 className="form-title">Log In</h1>
+            <p className="form-subtext">Access your account and start exploring.</p>
+            <form onSubmit={handleLogin}>
               <IonItem className="ion-item-custom" lines="inset">
-                <IonLabel position="floating">Full Name</IonLabel>
+                <IonLabel position="floating">Email or Username</IonLabel>
                 <IonInput type="text" required />
-              </IonItem>
-              <IonItem className="ion-item-custom" lines="inset">
-                <IonLabel position="floating">Username</IonLabel>
-                <IonInput type="text" required />
-              </IonItem>
-              <IonItem className="ion-item-custom" lines="inset">
-                <IonLabel position="floating">Email Address</IonLabel>
-                <IonInput type="email" required />
               </IonItem>
               <IonItem className="ion-item-custom" lines="inset">
                 <IonLabel position="floating">Password</IonLabel>
                 <IonInput type="password" required />
               </IonItem>
-              <IonItem className="ion-item-custom" lines="inset">
-                <IonLabel position="floating">Confirm Password</IonLabel>
-                <IonInput type="password" required />
-              </IonItem>
-              <IonItem className="ion-item-custom" lines="inset">
-                <IonLabel>Date of Birth</IonLabel>
-                <IonDatetime
-                  presentation="date"
-                  style={{ width: '100%' }}
-                />
-              </IonItem>
-              <IonItem className="ion-item-custom" lines="inset">
-                <IonLabel position="floating">Phone Number</IonLabel>
-                <IonInput type="tel" required />
-              </IonItem>
               <IonButton type="submit" expand="block" color="warning" style={{ marginTop: '24px' }}>
-                Sign Up
+                Log In
               </IonButton>
             </form>
           </div>
@@ -149,4 +127,4 @@ const SignupPage: React.FC = () => {
   );
 };
 
-export default SignupPage;
+export default LoginPage;
