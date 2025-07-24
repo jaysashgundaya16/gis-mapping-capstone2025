@@ -18,21 +18,17 @@ import '@ionic/react/css/text-transformation.css';
 import '@ionic/react/css/flex-utils.css';
 import '@ionic/react/css/display.css';
 
-/**
- * Ionic Dark Mode
- * -----------------------------------------------------
- * For more info, please see:
- * https://ionicframework.com/docs/theming/dark-mode
- */
-
+/* Ionic Dark Mode */
 /* import '@ionic/react/css/palettes/dark.always.css'; */
 /* import '@ionic/react/css/palettes/dark.class.css'; */
 import '@ionic/react/css/palettes/dark.system.css';
 
 /* Theme variables */
 import './theme/variables.css';
-import LandingPage from './pages/LandingPage';
 
+/* Pages */
+import LandingPage from './pages/LandingPage';
+import Signup from './pages/Signup';
 
 setupIonicReact();
 
@@ -40,7 +36,14 @@ const App: React.FC = () => (
   <IonApp>
     <IonReactRouter>
       <IonRouterOutlet>
-      <Route exact path="/gis-mapping-capstone2025" component={LandingPage} />
+        {/* Landing page route */}
+        <Route exact path="/gis-mapping-capstone2025" component={LandingPage} />
+
+        {/* ✅ Signup page route */}
+        <Route exact path="/signup" component={Signup} />
+
+        {/* Optional: Redirect to landing page for unknown routes */}
+        <Redirect exact from="/" to="/gis-mapping-capstone2025" />
       </IonRouterOutlet>
     </IonReactRouter>
   </IonApp>
