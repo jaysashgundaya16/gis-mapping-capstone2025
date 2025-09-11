@@ -27,8 +27,11 @@ import './theme/variables.css';
 /* Pages */
 import LandingPage from './pages/LandingPage';
 import Signup from './pages/Signup';
-import Login from './pages/Login';
+
 import Dashboard from './pages/Dashboard';
+import Login from './pages/Login';
+import EditProfile from './pages/EditProfile';
+import FarmersProfile from './pages/FarmersProfile';
 
 
 setupIonicReact();
@@ -48,7 +51,8 @@ const App: React.FC = () => (
 
         {/* ✅ Dashboard page */}
         <Route exact path="/dashboard" component={Dashboard} />
-
+        <Route exact path="/edit-profile" component={EditProfile} />
+        <Route exact path="/farmers-profile" component={FarmersProfile} />
         {/* Redirect root to landing page */}
         <Redirect exact from="/" to="/gis-mapping-capstone2025" />
       </IonRouterOutlet>

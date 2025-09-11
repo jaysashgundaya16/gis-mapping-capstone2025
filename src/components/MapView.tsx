@@ -62,7 +62,8 @@ const MapView: React.FC = () => {
       {/* Sidebar */}
       <div style={{
         width: '250px',
-        overflowY: 'auto',
+        display: 'flex',
+        flexDirection: 'column',
         background: '#000',
         color: '#fff',
         padding: '10px',
@@ -70,18 +71,20 @@ const MapView: React.FC = () => {
         borderRight: '1px solid #444'
       }}>
         <h4>Barangays</h4>
-        {barangays.map((bgy) => (
-          <div key={bgy}>
-            <label>
-              <input
-                type="checkbox"
-                checked={selectedBarangays.includes(bgy)} // ✅ default unchecked
-                onChange={() => handleToggle(bgy)}
-              />
-              &nbsp;{bgy}
-            </label>
-          </div>
-        ))}
+        <div style={{ flex: 1, overflowY: 'auto' }}>
+          {barangays.map((bgy) => (
+            <div key={bgy}>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={selectedBarangays.includes(bgy)} // ✅ default unchecked
+                  onChange={() => handleToggle(bgy)}
+                />
+                &nbsp;{bgy}
+              </label>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Map */}

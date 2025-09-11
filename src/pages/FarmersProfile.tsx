@@ -1,16 +1,10 @@
 import React from 'react';
-import MapView from '../components/MapView';
 import {
   IonPage,
   IonHeader,
   IonToolbar,
   IonTitle,
   IonContent,
-  IonCard,
-  IonCardHeader,
-  IonCardTitle,
-  IonCardContent,
-  IonButton,
   IonButtons,
   IonIcon,
   IonMenu,
@@ -25,14 +19,13 @@ import {
 import { menuOutline, personCircle, mapOutline, peopleCircleOutline, logOutOutline } from 'ionicons/icons';
 import SideMenu from '../components/SideMenu';
 
-const Dashboard: React.FC = () => {
+const FarmersProfile: React.FC = () => {
   const router = useIonRouter();
 
   return (
     <>
-    {/* ✅ Reusable side menu */}
-      <SideMenu />
-      {/* 📌 Side Menu (only opens on button click, no swipe) */}
+    <SideMenu />
+      {/* 📌 Side Menu */}
       <IonMenu side="start" contentId="main-content" swipeGesture={false}>
         <IonHeader>
           <IonToolbar color="dark">
@@ -42,6 +35,11 @@ const Dashboard: React.FC = () => {
         <IonMenuContent>
           <IonList>
             <IonMenuToggle autoHide={false}>
+              {/* ✅ Dashboard link always first */}
+              <IonItem button onClick={() => router.push('/dashboard', 'forward')}>
+                <IonIcon icon={mapOutline} slot="start" />
+                Dashboard
+              </IonItem>
               <IonItem button onClick={() => router.push('/edit-profile', 'forward')}>
                 <IonIcon icon={personCircle} slot="start" />
                 Edit Profile
@@ -61,57 +59,24 @@ const Dashboard: React.FC = () => {
 
       {/* 📌 Main Content */}
       <IonPage id="main-content">
-        <style>
-          {`
-            .dashboard-bg {
-              min-height: 100vh;
-              background: linear-gradient(to bottom right, #0f2027, #203a43, #2c5364);
-              color: white;
-              padding: 20px;
-            }
-            .dashboard-title {
-              font-size: 1.5rem;
-              text-align: center;
-              color: white;
-              margin: 20px 0;
-            }
-            .ion-card-custom {
-              background: rgba(255, 255, 255, 0.05);
-              border-radius: 16px;
-              backdrop-filter: blur(6px);
-              color: white;
-            }
-          `}
-        </style>
-
         <IonHeader translucent>
-          <IonToolbar style={{ background: 'transparent' }}>
+          <IonToolbar>
             <IonButtons slot="start">
-              {/* 📌 Button to open menu */}
               <IonMenuButton autoHide={false}>
                 <IonIcon icon={menuOutline} />
               </IonMenuButton>
             </IonButtons>
-            <IonTitle></IonTitle>
+            <IonTitle>Farmers Profile</IonTitle>
           </IonToolbar>
         </IonHeader>
 
-        <IonContent fullscreen className="dashboard-bg">
-          {/* 📍 GIS Mapping Tool */}
-          <IonCard className="ion-card-custom">
-            <IonCardHeader>
-              <IonCardTitle>
-                <IonIcon icon={mapOutline} /> &nbsp; Soil Nutrient Crop Profiling
-              </IonCardTitle>
-            </IonCardHeader>
-            <IonCardContent>
-              <MapView />
-            </IonCardContent>
-          </IonCard>
+        <IonContent className="ion-padding">
+          <h2>Farmers Profile Page</h2>
+          <p>This is a placeholder page where you can display farmers’ details later.</p>
         </IonContent>
       </IonPage>
     </>
   );
 };
 
-export default Dashboard;
+export default FarmersProfile;
