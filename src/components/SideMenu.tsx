@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   IonMenu,
   IonHeader,
@@ -10,6 +10,9 @@ import {
   IonMenuToggle,
   IonIcon,
   useIonAlert,
+  IonFooter,
+  IonAvatar,
+  IonButton,
 } from "@ionic/react";
 import {
   mapOutline,
@@ -18,12 +21,42 @@ import {
   logOutOutline,
 } from "ionicons/icons";
 import { useIonRouter } from "@ionic/react";
-import { signOut } from "firebase/auth";
-import { auth } from "../firebaseConfig"; // ✅ Firebase auth
+import { signOut, onAuthStateChanged } from "firebase/auth";
+import { auth, db } from "../firebaseConfig"; // ✅ Firebase config
+import { doc, getDoc } from "firebase/firestore";
 
 const SideMenu: React.FC = () => {
   const router = useIonRouter();
   const [presentAlert] = useIonAlert();
+  const [userData, setUserData] = useState<any>(null);
+
+  // ✅ Load user data (Firestore + Firebase Auth)
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        const docRef = doc(db, "users", firebaseUser.uid);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          setUserData({
+            name: docSnap.data().name || "User",
+            email: firebaseUser.email,
+            photoUrl: docSnap.data().photoUrl || "https://i.pravatar.cc/150",
+          });
+        } else {
+          setUserData({
+            name: "User",
+            email: firebaseUser.email,
+            photoUrl: "https://i.pravatar.cc/150",
+          });
+        }
+      } else {
+        setUserData(null);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   // ✅ Handle logout
   const handleLogout = async () => {
@@ -51,6 +84,7 @@ const SideMenu: React.FC = () => {
           <IonTitle>Menu</IonTitle>
         </IonToolbar>
       </IonHeader>
+
       <IonContent>
         <IonList>
           <IonMenuToggle autoHide={false}>
@@ -78,15 +112,37 @@ const SideMenu: React.FC = () => {
               <IonIcon icon={peopleCircleOutline} slot="start" />
               Farmers Profile
             </IonItem>
-
-            {/* ✅ Logout */}
-            <IonItem button onClick={handleLogout}>
-              <IonIcon icon={logOutOutline} slot="start" />
-              Logout
-            </IonItem>
           </IonMenuToggle>
         </IonList>
       </IonContent>
+
+      {/* ✅ Footer with Avatar & Logout */}
+      {userData && (
+        <IonFooter style={{ padding: "12px", borderTop: "1px solid #ccc" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <IonAvatar>
+              <img src={userData.photoUrl} alt="Profile" />
+            </IonAvatar>
+            <div style={{ flex: 1 }}>
+              <strong>{userData.name}</strong>
+              <p style={{ margin: 0, fontSize: "0.8rem", color: "gray" }}>
+                {userData.email}
+              </p>
+            </div>
+          </div>
+
+          {/* ✅ Logout button under avatar */}
+          <IonButton
+            expand="block"
+            color="danger"
+            style={{ marginTop: "10px" }}
+            onClick={handleLogout}
+          >
+            <IonIcon icon={logOutOutline} slot="start" />
+            Logout
+          </IonButton>
+        </IonFooter>
+      )}
     </IonMenu>
   );
 };
