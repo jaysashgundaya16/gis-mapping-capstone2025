@@ -17,6 +17,7 @@ import {
   IonButton,
   useIonAlert,
   IonAvatar,
+  IonSpinner,
 } from "@ionic/react";
 import SideMenu from "../components/SideMenu";
 import { auth, db } from "../firebaseConfig";
@@ -29,7 +30,13 @@ import {
   onAuthStateChanged,
 } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import {
+  getStorage,
+  ref,
+  uploadBytesResumable,
+  getDownloadURL,
+} from "firebase/storage";
+import imageCompression from "browser-image-compression";
 
 const EditProfile: React.FC = () => {
   const [presentAlert] = useIonAlert();
@@ -46,16 +53,19 @@ const EditProfile: React.FC = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
+  // Uploading state
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+
   const storage = getStorage();
 
-  // ✅ Load user data when logged in
+  // ✅ Load user data on login
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         setUid(user.uid);
         setEmail(user.email || "");
 
-        // Load Firestore profile
         const docRef = doc(db, "users", user.uid);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
@@ -76,12 +86,10 @@ const EditProfile: React.FC = () => {
       const user = auth.currentUser;
       if (!user) return;
 
-      // Update email in Firebase Auth
       if (email !== user.email) {
         await updateEmail(user, email);
       }
 
-      // Save to Firestore
       await setDoc(
         doc(db, "users", user.uid),
         { name, email, phone, photoUrl },
@@ -102,32 +110,72 @@ const EditProfile: React.FC = () => {
     }
   };
 
-  // ✅ Upload new profile photo
+  // ✅ Upload & update profile photo
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     try {
       const file = e.target.files?.[0];
       if (!file || !uid) return;
 
-      const storageRef = ref(storage, `profilePhotos/${uid}.jpg`);
-      await uploadBytes(storageRef, file);
+      setUploading(true);
+      setUploadProgress(0);
 
-      const downloadURL = await getDownloadURL(storageRef);
-      setPhotoUrl(downloadURL);
-
-      // Save photo URL in Firestore
-      await setDoc(doc(db, "users", uid), { photoUrl: downloadURL }, { merge: true });
-
-      presentAlert({
-        header: "Profile Picture Updated",
-        message: "Your profile photo has been uploaded successfully.",
-        buttons: ["OK"],
+      // Compress before upload
+      const compressedFile = await imageCompression(file, {
+        maxSizeMB: 0.2, // ~200 KB
+        maxWidthOrHeight: 300,
+        useWebWorker: true,
       });
+
+      const storageRef = ref(storage, `profilePhotos/${uid}.jpg`);
+      const uploadTask = uploadBytesResumable(storageRef, compressedFile);
+
+      uploadTask.on(
+        "state_changed",
+        (snapshot) => {
+          const progress =
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          setUploadProgress(Math.round(progress));
+        },
+        async (error) => {
+          presentAlert({
+            header: "Upload Error",
+            message: error.message,
+            buttons: ["OK"],
+          });
+          setUploading(false);
+        },
+        async () => {
+          let downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+          const freshUrl = `${downloadURL}?t=${Date.now()}`; // ✅ cache-busting
+
+          // Update state immediately
+          setPhotoUrl(freshUrl);
+
+          // Update Firestore
+          await setDoc(
+            doc(db, "users", uid),
+            { photoUrl: freshUrl },
+            { merge: true }
+          );
+
+          presentAlert({
+            header: "Profile Picture Updated",
+            message: "Your profile photo has been uploaded successfully.",
+            buttons: ["OK"],
+          });
+
+          setUploading(false);
+          setUploadProgress(0);
+          e.target.value = "";
+        }
+      );
     } catch (error: any) {
       presentAlert({
         header: "Error",
         message: error.message,
         buttons: ["OK"],
       });
+      setUploading(false);
     }
   };
 
@@ -145,10 +193,11 @@ const EditProfile: React.FC = () => {
       const user = auth.currentUser;
       if (!user || !user.email) return;
 
-      // Re-authenticate before password change
-      const credential = EmailAuthProvider.credential(user.email, currentPassword);
+      const credential = EmailAuthProvider.credential(
+        user.email,
+        currentPassword
+      );
       await reauthenticateWithCredential(user, credential);
-
       await updatePassword(user, newPassword);
 
       presentAlert({
@@ -157,7 +206,6 @@ const EditProfile: React.FC = () => {
         buttons: ["OK"],
       });
 
-      // Reset fields
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
@@ -194,7 +242,6 @@ const EditProfile: React.FC = () => {
 
   return (
     <>
-      {/* 📌 Side Menu */}
       <SideMenu />
 
       <IonPage id="main-content">
@@ -210,9 +257,20 @@ const EditProfile: React.FC = () => {
         <IonContent fullscreen className="ion-padding">
           <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
             {/* Left Profile Card */}
-            <IonCard style={{ flex: "1 1 250px", maxWidth: "300px", textAlign: "center" }}>
-              <IonAvatar style={{ width: "120px", height: "120px", margin: "20px auto" }}>
-                <img src={photoUrl} alt="Profile" />
+            <IonCard
+              style={{ flex: "1 1 250px", maxWidth: "300px", textAlign: "center" }}
+            >
+              <IonAvatar
+                style={{ width: "120px", height: "120px", margin: "20px auto" }}
+              >
+                {uploading ? (
+                  <div style={{ textAlign: "center" }}>
+                    <IonSpinner name="crescent" />
+                    <p style={{ fontSize: "12px" }}>{uploadProgress}%</p>
+                  </div>
+                ) : (
+                  <img src={photoUrl} alt="Profile" />
+                )}
               </IonAvatar>
               <IonCardHeader>
                 <IonCardTitle>{name || "Your Name"}</IonCardTitle>
@@ -220,8 +278,17 @@ const EditProfile: React.FC = () => {
               <IonCardContent>
                 <p>{email}</p>
                 <p>{phone}</p>
-                <input type="file" accept="image/*" onChange={handlePhotoUpload} />
-                <IonButton expand="block" color="danger" style={{ marginTop: "10px" }} onClick={handleCloseAccount}>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handlePhotoUpload}
+                />
+                <IonButton
+                  expand="block"
+                  color="danger"
+                  style={{ marginTop: "10px" }}
+                  onClick={handleCloseAccount}
+                >
                   Close Account
                 </IonButton>
               </IonCardContent>
@@ -232,20 +299,33 @@ const EditProfile: React.FC = () => {
               <h2>User Information</h2>
               <IonItem>
                 <IonLabel position="stacked">Name</IonLabel>
-                <IonInput value={name} onIonChange={(e) => setName(e.detail.value!)} />
+                <IonInput
+                  value={name}
+                  onIonChange={(e) => setName(e.detail.value!)}
+                />
               </IonItem>
 
               <IonItem>
                 <IonLabel position="stacked">Email</IonLabel>
-                <IonInput value={email} onIonChange={(e) => setEmail(e.detail.value!)} />
+                <IonInput
+                  value={email}
+                  onIonChange={(e) => setEmail(e.detail.value!)}
+                />
               </IonItem>
 
               <IonItem>
                 <IonLabel position="stacked">Phone</IonLabel>
-                <IonInput value={phone} onIonChange={(e) => setPhone(e.detail.value!)} />
+                <IonInput
+                  value={phone}
+                  onIonChange={(e) => setPhone(e.detail.value!)}
+                />
               </IonItem>
 
-              <IonButton expand="block" style={{ marginTop: "16px" }} onClick={handleSaveProfile}>
+              <IonButton
+                expand="block"
+                style={{ marginTop: "16px" }}
+                onClick={handleSaveProfile}
+              >
                 Save Now
               </IonButton>
 

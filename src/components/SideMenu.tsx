@@ -22,34 +22,37 @@ import {
 } from "ionicons/icons";
 import { useIonRouter } from "@ionic/react";
 import { signOut, onAuthStateChanged } from "firebase/auth";
-import { auth, db } from "../firebaseConfig"; // ✅ Firebase config
-import { doc, getDoc } from "firebase/firestore";
+import { auth, db } from "../firebaseConfig";
+import { doc, onSnapshot } from "firebase/firestore";
 
 const SideMenu: React.FC = () => {
   const router = useIonRouter();
   const [presentAlert] = useIonAlert();
   const [userData, setUserData] = useState<any>(null);
 
-  // ✅ Load user data (Firestore + Firebase Auth)
+  // ✅ Load user data live from Firestore
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       if (firebaseUser) {
         const docRef = doc(db, "users", firebaseUser.uid);
-        const docSnap = await getDoc(docRef);
 
-        if (docSnap.exists()) {
-          setUserData({
-            name: docSnap.data().name || "User",
-            email: firebaseUser.email,
-            photoUrl: docSnap.data().photoUrl || "https://i.pravatar.cc/150",
-          });
-        } else {
-          setUserData({
-            name: "User",
-            email: firebaseUser.email,
-            photoUrl: "https://i.pravatar.cc/150",
-          });
-        }
+        const unsubDoc = onSnapshot(docRef, (docSnap) => {
+          if (docSnap.exists()) {
+            setUserData({
+              name: docSnap.data().name || "User",
+              email: firebaseUser.email,
+              photoUrl: docSnap.data().photoUrl || "https://i.pravatar.cc/150",
+            });
+          } else {
+            setUserData({
+              name: "User",
+              email: firebaseUser.email,
+              photoUrl: "https://i.pravatar.cc/150",
+            });
+          }
+        });
+
+        return () => unsubDoc();
       } else {
         setUserData(null);
       }
@@ -61,12 +64,12 @@ const SideMenu: React.FC = () => {
   // ✅ Handle logout
   const handleLogout = async () => {
     try {
-      await signOut(auth); // Firebase logout
+      await signOut(auth);
       await presentAlert({
         header: "Logged Out",
         message: "You have been successfully logged out.",
         buttons: ["OK"],
-        onDidDismiss: () => router.push("/", "root"), // redirect to login/home
+        onDidDismiss: () => router.push("/", "root"),
       });
     } catch (error: any) {
       await presentAlert({
@@ -98,17 +101,23 @@ const SideMenu: React.FC = () => {
               }}
             >
               <IonIcon icon={mapOutline} slot="start" />
-              Dashboard
+              Map
             </IonItem>
 
             {/* ✅ Edit Profile */}
-            <IonItem button onClick={() => router.push("/edit-profile", "forward")}>
+            <IonItem
+              button
+              onClick={() => router.push("/edit-profile", "forward")}
+            >
               <IonIcon icon={personCircle} slot="start" />
               Edit Profile
             </IonItem>
 
             {/* ✅ Farmers Profile */}
-            <IonItem button onClick={() => router.push("/farmers-profile", "forward")}>
+            <IonItem
+              button
+              onClick={() => router.push("/farmers-profile", "forward")}
+            >
               <IonIcon icon={peopleCircleOutline} slot="start" />
               Farmers Profile
             </IonItem>
@@ -131,7 +140,6 @@ const SideMenu: React.FC = () => {
             </div>
           </div>
 
-          {/* ✅ Logout button under avatar */}
           <IonButton
             expand="block"
             color="danger"

@@ -1,5 +1,5 @@
-import React from 'react';
-import MapView from '../components/MapView';
+import React from "react";
+import MapView from "../components/MapView";
 import {
   IonPage,
   IonHeader,
@@ -10,7 +10,6 @@ import {
   IonCardHeader,
   IonCardTitle,
   IonCardContent,
-  IonButton,
   IonButtons,
   IonIcon,
   IonMenu,
@@ -19,20 +18,27 @@ import {
   IonMenuToggle,
   IonContent as IonMenuContent,
   IonMenuButton,
-  useIonRouter
-} from '@ionic/react';
+  useIonRouter,
+} from "@ionic/react";
 
-import { menuOutline, personCircle, mapOutline, peopleCircleOutline, logOutOutline } from 'ionicons/icons';
-import SideMenu from '../components/SideMenu';
+import {
+  menuOutline,
+  personCircle,
+  mapOutline,
+  peopleCircleOutline,
+  logOutOutline,
+} from "ionicons/icons";
+import SideMenu from "../components/SideMenu";
 
 const Dashboard: React.FC = () => {
   const router = useIonRouter();
 
   return (
     <>
-    {/* ✅ Reusable side menu */}
+      {/* ✅ Reusable side menu */}
       <SideMenu />
-      {/* 📌 Side Menu (only opens on button click, no swipe) */}
+
+      {/* 📌 Side Menu */}
       <IonMenu side="start" contentId="main-content" swipeGesture={false}>
         <IonHeader>
           <IonToolbar color="dark">
@@ -42,15 +48,21 @@ const Dashboard: React.FC = () => {
         <IonMenuContent>
           <IonList>
             <IonMenuToggle autoHide={false}>
-              <IonItem button onClick={() => router.push('/edit-profile', 'forward')}>
+              <IonItem
+                button
+                onClick={() => router.push("/edit-profile", "forward")}
+              >
                 <IonIcon icon={personCircle} slot="start" />
                 Edit Profile
               </IonItem>
-              <IonItem button onClick={() => router.push('/farmers-profile', 'forward')}>
+              <IonItem
+                button
+                onClick={() => router.push("/farmers-profile", "forward")}
+              >
                 <IonIcon icon={peopleCircleOutline} slot="start" />
                 Farmers Profile
               </IonItem>
-              <IonItem button onClick={() => router.push('/', 'root')}>
+              <IonItem button onClick={() => router.push("/", "root")}>
                 <IonIcon icon={logOutOutline} slot="start" />
                 Logout
               </IonItem>
@@ -63,36 +75,52 @@ const Dashboard: React.FC = () => {
       <IonPage id="main-content">
         <style>
           {`
+            /* 🌈 Gradient Header */
+            .header-gradient {
+              background: linear-gradient(90deg, #0f2027, #2c5364, #0f2027);
+              color: white;
+            }
+
+            /* 🌱 Dashboard Background */
             .dashboard-bg {
               min-height: 100vh;
-              background: linear-gradient(to bottom right, #0f2027, #203a43, #2c5364);
+              background: linear-gradient(to bottom right, #012917, #14532d, #1e3a8a);
               color: white;
               padding: 20px;
             }
-            .dashboard-title {
-              font-size: 1.5rem;
-              text-align: center;
-              color: white;
-              margin: 20px 0;
-            }
+
+            /* 📌 Card Styling */
             .ion-card-custom {
-              background: rgba(255, 255, 255, 0.05);
+              background: rgba(255, 255, 255, 0.08);
               border-radius: 16px;
               backdrop-filter: blur(6px);
+              -webkit-backdrop-filter: blur(6px);
+              border: 1px solid rgba(255, 255, 255, 0.15);
               color: white;
+              margin-top: 20px;
+              box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+            }
+
+            .dashboard-title {
+              font-size: 1.4rem;
+              font-weight: bold;
+              margin: 0;
+              text-align: center;
+              letter-spacing: 1px;
             }
           `}
         </style>
 
         <IonHeader translucent>
-          <IonToolbar style={{ background: 'transparent' }}>
+          <IonToolbar className="header-gradient">
             <IonButtons slot="start">
-              {/* 📌 Button to open menu */}
               <IonMenuButton autoHide={false}>
                 <IonIcon icon={menuOutline} />
               </IonMenuButton>
             </IonButtons>
-            <IonTitle></IonTitle>
+            <IonTitle className="dashboard-title">
+              🌾 MUNICIPAL OFFICE OF AGRICULTURE
+            </IonTitle>
           </IonToolbar>
         </IonHeader>
 
@@ -101,7 +129,7 @@ const Dashboard: React.FC = () => {
           <IonCard className="ion-card-custom">
             <IonCardHeader>
               <IonCardTitle>
-                <IonIcon icon={mapOutline} /> &nbsp; Soil Nutrient Crop Profiling
+                <IonIcon icon={mapOutline} /> Soil Nutrient Crop Profiling
               </IonCardTitle>
             </IonCardHeader>
             <IonCardContent>
