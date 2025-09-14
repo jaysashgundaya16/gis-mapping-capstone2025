@@ -1,0 +1,84 @@
+/* 🌈 Background */
+.dashboard-bg {
+  --background: linear-gradient(135deg, #090909, #048e10);
+  padding: 16px;
+}
+
+/* 🌈 Header Gradient */
+.header-gradient {
+  --background: linear-gradient(90deg, #080808, #2e5700);
+  color: rgb(246, 244, 244);
+  font-weight: bold;
+}
+
+.dashboard-center-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+/* 🌈 Card Styling */
+.ion-card-custom {
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(252, 251, 251, 0.877);
+}
+
+.card-header-gradient {
+  --background: linear-gradient(90deg, #060606, #014b1a);
+  color: rgb(251, 250, 250);
+  font-weight: bold;
+  border-radius: 16px 16px 0 0;
+}
+
+/* 🌈 Modal Content */
+.modal-content {
+  padding: 20px;
+}
+
+/* 📊 Farmer Stats Grid */
+.stats-grid {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.stat-card {
+  flex: 1;
+  min-width: 100px;
+  padding: 20px;
+  border-radius: 16px;
+  color: rgb(251, 249, 249);
+  text-align: center;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.stat-number {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+/* Gradient Variants */
+.gradient-green { background: linear-gradient(135deg, #0b0b0b, #81c784); }
+.gradient-blue { background: linear-gradient(135deg, #070808, #64b5f6); }
+.gradient-pink { background: linear-gradient(135deg, #030303, #f48fb1); }
+
+/* 🌱 Crop Monitoring Summary */
+.summary-box {
+  background: white;
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+.summary-box h3 {
+  margin-bottom: 10px;
+  color: #012302;
+}
+.summary-box ul {
+  list-style: none;
+  padding: 0;
+}
+.summary-box li {
+  margin: 6px 0;
+  font-size: 1rem;
+}

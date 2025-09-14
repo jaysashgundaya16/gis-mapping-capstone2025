@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef } from "react";
 import {
   IonButton,
   IonButtons,
@@ -7,12 +7,13 @@ import {
   IonPage,
   IonTitle,
   IonToolbar,
-  useIonRouter
-} from '@ionic/react';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import 'swiper/css';
-import 'swiper/css/autoplay';
-import { Autoplay } from 'swiper/modules';
+  useIonRouter,
+} from "@ionic/react";
+import { Swiper, SwiperSlide } from "swiper/react";
+import "swiper/css";
+import "swiper/css/autoplay";
+import { Autoplay } from "swiper/modules";
+import "./LandingPage.css"; // ✅ Import CSS file
 
 const LandingPage: React.FC = () => {
   const router = useIonRouter();
@@ -20,100 +21,34 @@ const LandingPage: React.FC = () => {
   const aboutRef = useRef<HTMLDivElement | null>(null);
   const servicesRef = useRef<HTMLDivElement | null>(null);
 
-  const scrollTo = (section: 'home' | 'about' | 'services') => {
+  const scrollTo = (section: "home" | "about" | "services") => {
     const sectionRef =
-      section === 'home' ? homeRef :
-      section === 'about' ? aboutRef :
-      servicesRef;
-    sectionRef.current?.scrollIntoView({ behavior: 'smooth' });
+      section === "home" ? homeRef : section === "about" ? aboutRef : servicesRef;
+    sectionRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
     <IonPage>
-      <style>
-        {`
-          .hover-glow span {
-            transition: all 0.4s ease;
-            display: inline-block;
-          }
-          .hover-glow:hover span {
-            color: #fff;
-            text-shadow: 0 0 8px #ffffff, 0 0 12px #ffd700;
-            transform: translateY(-2px);
-          }
-          .hover-glow:hover {
-            transform: translateY(-3px);
-          }
-          .glow-box {
-            transition: all 0.4s ease;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-            border-radius: 12px;
-            overflow: hidden;
-            background: #000;
-          }
-          .glow-box:hover {
-            transform: translateY(-6px);
-            box-shadow:
-              0 0 20px rgba(255, 255, 255, 0.4),
-              0 0 30px rgba(255, 215, 0, 0.2),
-              0 0 40px rgba(255, 255, 255, 0.3);
-          }
-          .swiper-container-custom {
-            width: 100%;
-            height: 100%;
-          }
-          .swiper-slide img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-          }
-          .section-container {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(to left, #dee7faff, #050505ff);
-            padding: 60px 20px;
-          }
-          .service-card {
-            background-color: black;
-            color: white;
-            border-radius: 12px;
-            padding: 20px;
-            width: 300px;
-            text-align: center;
-            transition: transform 0.4s ease, box-shadow 0.4s ease;
-          }
-          .service-card:hover {
-            transform: translateY(-6px);
-            box-shadow:
-              0 0 20px rgba(255, 255, 255, 0.4),
-              0 0 30px rgba(255, 215, 0, 0.2),
-              0 0 40px rgba(255, 255, 255, 0.3);
-          }
-        `}
-      </style>
-
       <IonHeader translucent>
-        <IonToolbar style={{ background: 'transparent', boxShadow: 'none' }}>
-          <IonTitle style={{ color: 'white' }}>BUGTA</IonTitle>
-          <IonButtons slot="end" style={{ gap: '27px' }}>
-            <IonButton className="hover-glow" fill="clear" onClick={() => scrollTo('home')}>
-              <span style={{ fontSize: '0.95rem' }}>Home</span>
+        <IonToolbar className="toolbar-custom">
+          <IonTitle className="toolbar-title">BUGTA</IonTitle>
+          <IonButtons slot="end" className="toolbar-buttons">
+            <IonButton className="hover-glow" fill="clear" onClick={() => scrollTo("home")}>
+              <span>Home</span>
             </IonButton>
-            <IonButton className="hover-glow" fill="clear" onClick={() => scrollTo('about')}>
-              <span style={{ fontSize: '0.95rem' }}>About Us</span>
+            <IonButton className="hover-glow" fill="clear" onClick={() => scrollTo("about")}>
+              <span>About Us</span>
             </IonButton>
-            <IonButton className="hover-glow" fill="clear" onClick={() => scrollTo('services')}>
-              <span style={{ fontSize: '0.95rem' }}>Services</span>
+            <IonButton className="hover-glow" fill="clear" onClick={() => scrollTo("services")}>
+              <span>Services</span>
             </IonButton>
-            <IonButton className="hover-glow" fill="clear" onClick={() => router.push('/contact', 'forward')}>
-              <span style={{ fontSize: '0.95rem' }}>Contact</span>
+            <IonButton className="hover-glow" fill="clear" onClick={() => router.push("/contact", "forward")}>
+              <span>Contact</span>
             </IonButton>
-            <IonButton className="hover-glow" fill="outline" onClick={() => router.push('/signup', 'forward')}>
+            <IonButton className="hover-glow" fill="outline" onClick={() => router.push("/signup", "forward")}>
               <span>Sign In</span>
             </IonButton>
-            <IonButton className="hover-glow" onClick={() => router.push('/login', 'forward')}>
+            <IonButton className="hover-glow" onClick={() => router.push("/login", "forward")}>
               <span>Log In</span>
             </IonButton>
           </IonButtons>
@@ -121,20 +56,23 @@ const LandingPage: React.FC = () => {
       </IonHeader>
 
       <IonContent fullscreen>
-        {/* Home Section */}
+        {/* ✅ Home Section with Logo */}
         <div ref={homeRef} className="section-container">
-          <div style={{ display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ flex: 1, maxWidth: '55%', color: 'white' }}>
-              <h1 style={{ fontSize: '5.7rem' }}>SOIL NUTRIENT PROFILING</h1>
-              <p style={{ fontSize: '1.2rem', marginBottom: '2rem' }}>
-                Municipal of Agriculture, Manolo Fortich Bukidnon
-              </p>
-              <IonButton fill="solid" color="warning" onClick={() => router.push('/signup', 'forward')}>
+          <div className="logo-background">
+            <img src="/assets/logo.png" alt="" />
+          </div>
+
+          <div className="home-content">
+            <div className="home-text">
+              <h1>SOIL NUTRIENT PROFILING</h1>
+              <p>Municipal of Agriculture, Manolo Fortich Bukidnon</p>
+              <IonButton fill="solid" color="warning" onClick={() => router.push("/signup", "forward")}>
                 Get Started
               </IonButton>
             </div>
-            <div style={{ flex: 1, maxWidth: '45%', display: 'flex', gap: '20px', justifyContent: 'center', alignItems: 'center' }}>
-              <div className="glow-box" style={{ width: '370px', height: '380px' }}>
+
+            <div className="home-images">
+              <div className="glow-box small-box">
                 <Swiper
                   className="swiper-container-custom"
                   modules={[Autoplay]}
@@ -150,7 +88,8 @@ const LandingPage: React.FC = () => {
                   </SwiperSlide>
                 </Swiper>
               </div>
-              <div className="glow-box" style={{ width: '550px', height: '580px' }}>
+
+              <div className="glow-box large-box">
                 <Swiper
                   className="swiper-container-custom"
                   modules={[Autoplay]}
@@ -172,36 +111,45 @@ const LandingPage: React.FC = () => {
 
         {/* About Section */}
         <div ref={aboutRef} className="section-container">
-          <div className="glow-box" style={{ backgroundColor: 'black', borderRadius: '12px', padding: '40px', maxWidth: '800px', color: 'white', textAlign: 'center' }}>
-            <h2 style={{ marginBottom: '20px', fontSize: '2rem' }}>About Us</h2>
-            <p style={{ fontSize: '1.1rem', lineHeight: '1.6' }}>
-              Our system utilizes GIS mapping technology to conduct accurate soil nutrient profiling, helping farmers and agricultural officials make informed decisions. We aim to boost agricultural productivity by providing precise, localized soil data for the Municipality of Agriculture, Manolo Fortich Bukidnon.
+          <div className="about-box">
+            <h2>About Us</h2>
+            <p>
+              Our system utilizes GIS mapping technology to conduct accurate soil nutrient
+              profiling, helping farmers and agricultural officials make informed decisions.
+              We aim to boost agricultural productivity by providing precise, localized soil
+              data for the Municipality of Agriculture, Manolo Fortich Bukidnon.
             </p>
           </div>
         </div>
 
         {/* Services Section */}
         <div ref={servicesRef} className="section-container">
-          <div style={{ maxWidth: '1000px', margin: '0 auto', textAlign: 'center' }}>
-            <h2 style={{ color: 'white', fontSize: '2rem', marginBottom: '30px' }}>Our Services</h2>
-            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '30px' }}>
+          <div className="services-container">
+            <h2>Our Services</h2>
+            <div className="services-grid">
               <div className="service-card">
-                <img src="https://cdn-icons-png.flaticon.com/512/2906/2906277.png" alt="Service Icon" style={{ width: '50px', marginBottom: '10px' }} />
+                <img src="https://cdn-icons-png.flaticon.com/512/2906/2906277.png" alt="Service Icon" />
                 <h3>GIS Soil Mapping</h3>
                 <p>Accurate mapping of soil nutrients using geolocation.</p>
-                <IonButton size="small" fill="outline" color="light" onClick={() => router.push('/gis-mapping')}>Learn More</IonButton>
+                <IonButton size="small" fill="outline" color="light" onClick={() => router.push("/gis-mapping")}>
+                  Learn More
+                </IonButton>
               </div>
               <div className="service-card">
-                <img src="https://cdn-icons-png.flaticon.com/512/2917/2917992.png" alt="Service Icon" style={{ width: '50px', marginBottom: '10px' }} />
+                <img src="https://cdn-icons-png.flaticon.com/512/2917/2917992.png" alt="Service Icon" />
                 <h3>Soil Testing</h3>
                 <p>Field testing and analysis of soil samples for productivity.</p>
-                <IonButton size="small" fill="outline" color="light" onClick={() => router.push('/soil-testing')}>Learn More</IonButton>
+                <IonButton size="small" fill="outline" color="light" onClick={() => router.push("/soil-testing")}>
+                  Learn More
+                </IonButton>
               </div>
               <div className="service-card">
-                <img src="https://cdn-icons-png.flaticon.com/512/2166/2166820.png" alt="Service Icon" style={{ width: '50px', marginBottom: '10px' }} />
+                <img src="https://cdn-icons-png.flaticon.com/512/2166/2166820.png" alt="Service Icon" />
                 <h3>Farmer Education</h3>
                 <p>Training and workshops for farmers on best practices.</p>
-                <IonButton size="small" fill="outline" color="light" onClick={() => router.push('/education')}>Learn More</IonButton>
+                <IonButton size="small" fill="outline" color="light" onClick={() => router.push("/education")}>
+                  Learn More
+                </IonButton>
               </div>
             </div>
           </div>
