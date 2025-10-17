@@ -13,12 +13,14 @@ import {
   IonFooter,
   IonAvatar,
   IonButton,
+  IonLabel,
 } from "@ionic/react";
 import {
   mapOutline,
   personCircle,
   peopleCircleOutline,
   logOutOutline,
+  leafOutline,
 } from "ionicons/icons";
 import { useIonRouter } from "@ionic/react";
 import { signOut, onAuthStateChanged } from "firebase/auth";
@@ -101,56 +103,52 @@ const SideMenu: React.FC = () => {
               }}
             >
               <IonIcon icon={mapOutline} slot="start" />
-              Map
+              <IonLabel>Map</IonLabel>
             </IonItem>
 
             {/* ✅ Edit Profile */}
-            <IonItem
-              button
-              onClick={() => router.push("/edit-profile", "forward")}
-            >
+            <IonItem button onClick={() => router.push("/edit-profile", "forward")}>
               <IonIcon icon={personCircle} slot="start" />
-              Edit Profile
+              <IonLabel>Edit Profile</IonLabel>
             </IonItem>
 
             {/* ✅ Farmers Profile */}
-            <IonItem
-              button
-              onClick={() => router.push("/farmers-profile", "forward")}
-            >
+            <IonItem button onClick={() => router.push("/farmers-profile", "forward")}>
               <IonIcon icon={peopleCircleOutline} slot="start" />
-              Farmers Profile
+              <IonLabel>Farmers Profile</IonLabel>
             </IonItem>
+            <IonItem button onClick={() => router.push("/soil-data-dashboard", "forward")}>
+            <IonIcon icon={leafOutline} slot="start" />
+            <IonLabel>Soil Data Dashboard</IonLabel>
+          </IonItem>
           </IonMenuToggle>
         </IonList>
       </IonContent>
 
-      {/* ✅ Footer with Avatar & Logout */}
-      {userData && (
-        <IonFooter style={{ padding: "12px", borderTop: "1px solid #ccc" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <IonAvatar>
-              <img src={userData.photoUrl} alt="Profile" />
-            </IonAvatar>
-            <div style={{ flex: 1 }}>
-              <strong>{userData.name}</strong>
-              <p style={{ margin: 0, fontSize: "0.8rem", color: "gray" }}>
-                {userData.email}
-              </p>
-            </div>
+      {/* ✅ Always show Logout Footer */}
+      <IonFooter style={{ padding: "12px", borderTop: "1px solid #ccc" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <IonAvatar>
+            <img src={userData?.photoUrl || "https://i.pravatar.cc/150"} alt="Profile" />
+          </IonAvatar>
+          <div style={{ flex: 1 }}>
+            <strong>{userData?.name || "User"}</strong>
+            <p style={{ margin: 0, fontSize: "0.8rem", color: "gray" }}>
+              {userData?.email || "user@example.com"}
+            </p>
           </div>
+        </div>
 
-          <IonButton
-            expand="block"
-            color="danger"
-            style={{ marginTop: "10px" }}
-            onClick={handleLogout}
-          >
-            <IonIcon icon={logOutOutline} slot="start" />
-            Logout
-          </IonButton>
-        </IonFooter>
-      )}
+        <IonButton
+          expand="block"
+          color="danger"
+          style={{ marginTop: "10px" }}
+          onClick={handleLogout}
+        >
+          <IonIcon icon={logOutOutline} slot="start" />
+          Logout
+        </IonButton>
+      </IonFooter>
     </IonMenu>
   );
 };

@@ -1,32 +1,36 @@
 import React, { useState, useEffect } from "react";
 import {
-  IonButton,
-  IonButtons,
+  IonPage,
   IonContent,
-  IonHeader,
-  IonInput,
   IonItem,
   IonLabel,
-  IonPage,
-  IonTitle,
-  IonToolbar,
+  IonInput,
+  IonButton,
   IonCheckbox,
   useIonRouter,
   useIonAlert,
+  IonSpinner,
 } from "@ionic/react";
-import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
-import { auth } from "../firebaseConfig"; // ✅ Import Firebase auth
+import {
+  signInWithEmailAndPassword,
+  sendPasswordResetEmail,
+  GoogleAuthProvider,
+  signInWithPopup,
+} from "firebase/auth";
+import { auth } from "../firebaseConfig";
+import "./Login.css";
 
 const LoginPage: React.FC = () => {
   const router = useIonRouter();
   const [presentAlert] = useIonAlert();
 
-  // Form states
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  // ✅ Load saved email if Remember Me was checked
+  const allowedAdminEmail = "gundayajaysash@gmail.com";
+
   useEffect(() => {
     const savedEmail = localStorage.getItem("rememberedEmail");
     if (savedEmail) {
@@ -35,210 +39,184 @@ const LoginPage: React.FC = () => {
     }
   }, []);
 
-  // ✅ Handle login
+  // ✅ Email/Password Login
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-
+    setLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const { user } = await signInWithEmailAndPassword(auth, email, password);
 
-      // Save or clear email based on checkbox
-      if (rememberMe) {
-        localStorage.setItem("rememberedEmail", email);
+      if (rememberMe) localStorage.setItem("rememberedEmail", email);
+      else localStorage.removeItem("rememberedEmail");
+
+      if (user.email === allowedAdminEmail) {
+        await presentAlert({
+          header: "Admin Login",
+          message: "Welcome back, Admin!",
+          buttons: [{ text: "OK", handler: () => router.push("/dashboard", "root") }],
+        });
       } else {
-        localStorage.removeItem("rememberedEmail");
+        await presentAlert({
+          header: "Guest Access",
+          message: "You are logged in as Guest (Farmer).",
+          buttons: [
+            {
+              text: "OK",
+              handler: () => {
+                localStorage.setItem("guestLogin", "true");
+                router.push("/guest-dashboard", "root");
+              },
+            },
+          ],
+        });
       }
-
-      await presentAlert({
-        header: "Welcome Back!",
-        message: "You have successfully logged in.",
-        buttons: ["OK"],
-        onDidDismiss: () => router.push("/dashboard", "root"),
-      });
     } catch (error: any) {
-      await presentAlert({
-        header: "Login Failed",
-        message: error.message || "Invalid email or password. Please try again.",
-        buttons: ["OK"],
-      });
+      const message =
+        error.code === "auth/user-not-found"
+          ? "No account found with this email."
+          : error.code === "auth/wrong-password"
+          ? "Incorrect password."
+          : error.code === "auth/invalid-email"
+          ? "Invalid email address."
+          : "Something went wrong.";
+
+      await presentAlert({ header: "Login Failed", message, buttons: ["OK"] });
+    } finally {
+      setLoading(false);
     }
   };
 
-  // ✅ Handle forgot password
+  // ✅ Forgot Password
   const handleForgotPassword = async () => {
     if (!email) {
       await presentAlert({
         header: "Missing Email",
-        message: "Please enter your email address first.",
+        message: "Enter your email to reset password.",
         buttons: ["OK"],
       });
       return;
     }
-
     try {
       await sendPasswordResetEmail(auth, email);
       await presentAlert({
         header: "Password Reset",
-        message: "A password reset link has been sent to your email.",
+        message: "A reset link has been sent to your email.",
         buttons: ["OK"],
       });
-    } catch (error: any) {
+    } catch {
       await presentAlert({
         header: "Error",
-        message: error.message || "Unable to send reset email. Try again.",
+        message: "Failed to send reset link. Try again.",
         buttons: ["OK"],
       });
     }
   };
 
+  // ✅ Google Sign-In
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
+      if (user.email === allowedAdminEmail) {
+        router.push("/dashboard", "root");
+      } else {
+        localStorage.setItem("guestLogin", "true");
+        router.push("/guest-dashboard", "root");
+      }
+    } catch (error: any) {
+      await presentAlert({
+        header: "Google Login Failed",
+        message: error.message || "Something went wrong.",
+        buttons: ["OK"],
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ✅ Guest Login
+  const handleGuestLogin = () => {
+    localStorage.setItem("guestLogin", "true");
+    router.push("/guest-dashboard", "root");
+  };
+
   return (
     <IonPage>
-      <style>
-        {`
-          .hover-glow span {
-            transition: all 0.4s ease;
-            display: inline-block;
-          }
-          .hover-glow:hover span {
-            color: #fff;
-            text-shadow: 0 0 8px #ffffff, 0 0 12px #ffd700;
-            transform: translateY(-2px);
-          }
-          .hover-glow:hover {
-            transform: translateY(-3px);
-          }
-          .section-container {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(to left, #050505, #dee7fa);
-            padding: 20px;
-          }
-          .glow-box {
-            transition: all 0.4s ease;
-            box-shadow: 0 8px 16px rgba(255,255,255,0.1);
-            border-radius: 16px;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(8px);
-            width: 100%;
-            max-width: 500px;
-            padding: 40px 32px;
-          }
-          .form-title {
-            font-size: 2.3rem;
-            margin-bottom: 0.5rem;
-            text-align: center;
-            color: white;
-          }
-          .form-subtext {
-            font-size: 1rem;
-            margin-bottom: 2rem;
-            text-align: center;
-            color: #ccc;
-          }
-          .ion-item-custom {
-            margin-bottom: 16px;
-            --background: transparent;
-            --color: white;
-            --border-radius: 12px;
-            --padding-start: 12px;
-            --padding-end: 12px;
-            --highlight-color-focused: #ffd700;
-          }
-          .forgot-link {
-            text-align: right;
-            margin-top: 12px;
-            color: #ffd700;
-            cursor: pointer;
-            font-size: 0.9rem;
-          }
-          .remember-me {
-            display: flex;
-            align-items: center;
-            margin-top: 12px;
-            color: #ccc;
-            font-size: 0.9rem;
-          }
-          .remember-me ion-checkbox {
-            margin-right: 8px;
-          }
-        `}
-      </style>
-
-      <IonHeader translucent>
-        <IonToolbar style={{ background: "transparent", boxShadow: "none" }}>
-          <IonTitle style={{ color: "white" }}>BUGTA</IonTitle>
-          <IonButtons slot="end" style={{ gap: "27px" }}>
-            <IonButton
-              className="hover-glow"
-              fill="clear"
-              onClick={() => router.push("/", "back")}
-            >
-              <span style={{ fontSize: "0.95rem" }}>Home</span>
-            </IonButton>
-            <IonButton
-              className="hover-glow"
-              fill="outline"
-              onClick={() => router.push("/signup", "forward")}
-            >
-              <span>Sign Up</span>
-            </IonButton>
-          </IonButtons>
-        </IonToolbar>
-      </IonHeader>
-
       <IonContent fullscreen>
-        <div className="section-container">
-          <div className="glow-box">
-            <h1 className="form-title">Log In</h1>
-            <p className="form-subtext">Access your account and start exploring.</p>
-            <form onSubmit={handleLogin}>
-              <IonItem className="ion-item-custom" lines="inset">
-                <IonLabel position="floating">Email</IonLabel>
-                <IonInput
-                  type="email"
-                  value={email}
-                  onIonChange={(e) => setEmail(e.detail.value!)}
-                  required
-                />
-              </IonItem>
-              <IonItem className="ion-item-custom" lines="inset">
-                <IonLabel position="floating">Password</IonLabel>
-                <IonInput
-                  type="password"
-                  value={password}
-                  onIonChange={(e) => setPassword(e.detail.value!)}
-                  required
-                />
-              </IonItem>
+        <div className="login-page-container">
+          <div className="login-section">
+            <div className="login-box">
+              <h2 className="login-form-title">ADMIN LOGIN</h2>
+              <p className="login-form-subtext">Only admin can log in. Others continue as guest.</p>
 
-              {/* ✅ Remember Me */}
-              <div className="remember-me">
-                <IonCheckbox
-                  checked={rememberMe}
-                  onIonChange={(e) => setRememberMe(e.detail.checked)}
-                />
-                <span>Remind Me</span>
-              </div>
+              <form onSubmit={handleLogin}>
+                <IonItem className="login-ion-item" lines="inset">
+                  <IonLabel position="floating">Email</IonLabel>
+                  <IonInput
+                    type="email"
+                    value={email}
+                    onIonChange={(e) => setEmail(e.detail.value!)}
+                    required
+                  />
+                </IonItem>
 
-              <IonButton
-                type="submit"
-                expand="block"
-                color="warning"
-                style={{ marginTop: "24px" }}
-              >
-                Log In
-              </IonButton>
+                <IonItem className="login-ion-item" lines="inset">
+                  <IonLabel position="floating">Password</IonLabel>
+                  <IonInput
+                    type="password"
+                    value={password}
+                    onIonChange={(e) => setPassword(e.detail.value!)}
+                    required
+                  />
+                </IonItem>
 
-              {/* ✅ Forgot Password */}
-              <div
-                className="forgot-link"
-                onClick={handleForgotPassword}
-              >
+                <div className="login-remember-me">
+                  <IonCheckbox
+                    checked={rememberMe}
+                    onIonChange={(e) => setRememberMe(e.detail.checked)}
+                  />
+                  <span>Remind Me</span>
+                </div>
+
+                <IonButton type="submit" expand="block" color="warning" className="login-btn">
+                  {loading ? <IonSpinner name="dots" /> : "Log In"}
+                </IonButton>
+              </form>
+
+              <div className="login-forgot-link" onClick={handleForgotPassword}>
                 Forgot Password?
               </div>
-            </form>
+
+              <div className="login-divider">or</div>
+
+              <IonButton
+                expand="block"
+                fill="solid"
+                color="light"
+                onClick={handleGoogleSignIn}
+                className="login-google-btn"
+              >
+                <img
+                  src="https://www.svgrepo.com/show/355037/google.svg"
+                  alt="Google"
+                  className="google-logo"
+                />
+                <span>Continue with Google</span>
+              </IonButton>
+
+              <IonButton
+                expand="block"
+                fill="outline"
+                color="medium"
+                onClick={handleGuestLogin}
+                className="login-guest-btn"
+              >
+                Continue as Guest
+              </IonButton>
+            </div>
           </div>
         </div>
       </IonContent>

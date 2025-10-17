@@ -14,15 +14,15 @@ import {
   useIonRouter,
   useIonAlert,
 } from "@ionic/react";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, signOut } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
-import { auth, db } from "../firebaseConfig"; // ✅ Import Firebase config
+import { auth, db } from "../firebaseConfig"; // ✅ Firebase config
 
 const SignupPage: React.FC = () => {
   const router = useIonRouter();
   const [presentAlert] = useIonAlert();
 
-  // Form states
+  // 🔹 Form state
   const [fullName, setFullName] = useState("");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -31,48 +31,71 @@ const SignupPage: React.FC = () => {
   const [dob, setDob] = useState<string | undefined>(undefined);
   const [phone, setPhone] = useState("");
 
+  // 🔑 Only this Gmail is allowed to register as Admin
+  const ADMIN_EMAIL = "gundayajaysash@gmail.com";
+
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // ✅ Password check
     if (password !== confirmPassword) {
       presentAlert({
         header: "Error",
-        message: "Passwords do not match!",
+        message: "Passwords do not match.",
+        buttons: ["OK"],
+      });
+      return;
+    }
+
+    // ✅ Restrict to admin account only
+    if (email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+      presentAlert({
+        header: "Signup Denied",
+        message: "Only the admin account is allowed to register.",
         buttons: ["OK"],
       });
       return;
     }
 
     try {
-      // ✅ Create user in Firebase Authentication
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      const user = userCredential.user;
+      // ✅ Register with Firebase
+      const { user } = await createUserWithEmailAndPassword(auth, email, password);
 
-      // ✅ Save user data in Firestore
+      // ✅ Save profile in Firestore
       await setDoc(doc(db, "users", user.uid), {
         fullName,
         username,
         email,
         dob,
         phone,
+        role: "admin",
         createdAt: new Date(),
       });
 
+      // ✅ Sign out right after signup
+      await signOut(auth);
+
+      // ✅ Success popup and redirect
       presentAlert({
-        header: "Success",
-        message: "Your account has been created!",
+        header: "Registration Complete",
+        message: "Your account has been created. Please log in.",
         buttons: ["OK"],
         onDidDismiss: () => router.push("/login", "root"),
       });
     } catch (error: any) {
+      let errorMessage = "Something went wrong. Please try again later.";
+
+      if (error.code === "auth/email-already-in-use") {
+        errorMessage = "Account is already in use.";
+      } else if (error.code === "auth/invalid-email") {
+        errorMessage = "Invalid email address.";
+      } else if (error.code === "auth/weak-password") {
+        errorMessage = "Password must be at least 6 characters.";
+      }
+
       presentAlert({
         header: "Signup Failed",
-        message:
-          error.message || "Something went wrong. Please try again later.",
+        message: errorMessage,
         buttons: ["OK"],
       });
     }
@@ -80,6 +103,7 @@ const SignupPage: React.FC = () => {
 
   return (
     <IonPage>
+      {/* Inline Styling */}
       <style>
         {`
           .hover-glow span {
@@ -136,6 +160,7 @@ const SignupPage: React.FC = () => {
         `}
       </style>
 
+      {/* 🔹 Header */}
       <IonHeader translucent>
         <IonToolbar style={{ background: "transparent", boxShadow: "none" }}>
           <IonTitle style={{ color: "white" }}>BUGTA</IonTitle>
@@ -158,13 +183,13 @@ const SignupPage: React.FC = () => {
         </IonToolbar>
       </IonHeader>
 
+      {/* 🔹 Signup Form */}
       <IonContent fullscreen>
         <div className="section-container">
           <div className="glow-box">
             <h1 className="form-title">Sign Up</h1>
-            <p className="form-subtext">
-              Create your account and access BUGTA tools.
-            </p>
+            <p className="form-subtext">Only the admin can create an account.</p>
+
             <form onSubmit={handleSignup}>
               <IonItem className="ion-item-custom" lines="inset">
                 <IonLabel position="floating">Full Name</IonLabel>
@@ -174,6 +199,7 @@ const SignupPage: React.FC = () => {
                   required
                 />
               </IonItem>
+
               <IonItem className="ion-item-custom" lines="inset">
                 <IonLabel position="floating">Username</IonLabel>
                 <IonInput
@@ -182,6 +208,7 @@ const SignupPage: React.FC = () => {
                   required
                 />
               </IonItem>
+
               <IonItem className="ion-item-custom" lines="inset">
                 <IonLabel position="floating">Email Address</IonLabel>
                 <IonInput
@@ -191,6 +218,7 @@ const SignupPage: React.FC = () => {
                   required
                 />
               </IonItem>
+
               <IonItem className="ion-item-custom" lines="inset">
                 <IonLabel position="floating">Password</IonLabel>
                 <IonInput
@@ -200,6 +228,7 @@ const SignupPage: React.FC = () => {
                   required
                 />
               </IonItem>
+
               <IonItem className="ion-item-custom" lines="inset">
                 <IonLabel position="floating">Confirm Password</IonLabel>
                 <IonInput
@@ -209,6 +238,7 @@ const SignupPage: React.FC = () => {
                   required
                 />
               </IonItem>
+
               <IonItem className="ion-item-custom" lines="inset">
                 <IonLabel>Date of Birth</IonLabel>
                 <IonDatetime
@@ -219,6 +249,7 @@ const SignupPage: React.FC = () => {
                   }
                 />
               </IonItem>
+
               <IonItem className="ion-item-custom" lines="inset">
                 <IonLabel position="floating">Phone Number</IonLabel>
                 <IonInput
@@ -228,6 +259,7 @@ const SignupPage: React.FC = () => {
                   required
                 />
               </IonItem>
+
               <IonButton
                 type="submit"
                 expand="block"
