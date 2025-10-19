@@ -9,12 +9,16 @@ import {
   IonButton,
   IonIcon,
   IonModal,
+  useIonRouter,
+  IonFab,
+  IonFabButton,
 } from "@ionic/react";
-import { expandOutline, closeOutline, mapOutline } from "ionicons/icons";
+import { expandOutline, closeOutline, mapOutline, logOutOutline } from "ionicons/icons";
 import MapView from "../components/MapView";
 import "./Dashboard.css";
-import { db } from "../firebaseConfig";
+import { db, auth } from "../firebaseConfig";
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
+import { signOut } from "firebase/auth";
 
 type SoilRecord = {
   id?: string;
@@ -32,6 +36,7 @@ type SoilRecord = {
 const GuestDashboard: React.FC = () => {
   const [showMapFull, setShowMapFull] = useState(false);
   const [soilRecords, setSoilRecords] = useState<SoilRecord[]>([]);
+  const router = useIonRouter();
 
   // Live sync with admin updates
   useEffect(() => {
@@ -43,6 +48,17 @@ const GuestDashboard: React.FC = () => {
     });
     return () => unsub();
   }, []);
+
+  // ✅ Logout function
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      localStorage.removeItem("guestLogin");
+      router.push("/login", "root"); // Redirect to LoginPage
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
 
   return (
     <IonPage>
@@ -86,15 +102,25 @@ const GuestDashboard: React.FC = () => {
           </div>
 
           <div style={{ height: "80vh", width: "100%" }}>
-            <MapView markers={soilRecords.map(r => ({
-              ...r,
-              latitude: r.lat,
-              longitude: r.lng
-            }))} />
+            <MapView
+              markers={soilRecords.map((r) => ({
+                ...r,
+                latitude: r.lat,
+                longitude: r.lng,
+              }))}
+            />
           </div>
         </div>
+
+        {/* ✅ Floating Logout Button (Round FAB Style) */}
+        <IonFab vertical="bottom" horizontal="end" slot="fixed">
+          <IonFabButton color="danger" onClick={handleLogout}>
+            <IonIcon icon={logOutOutline} />
+          </IonFabButton>
+        </IonFab>
       </IonContent>
 
+      {/* ✅ Fullscreen Map Modal */}
       <IonModal isOpen={showMapFull} onDidDismiss={() => setShowMapFull(false)}>
         <IonHeader>
           <IonToolbar className="header-gradient">
@@ -107,11 +133,13 @@ const GuestDashboard: React.FC = () => {
           </IonToolbar>
         </IonHeader>
         <IonContent fullscreen>
-          <MapView markers={soilRecords.map(r => ({
-            ...r,
-            latitude: r.lat,
-            longitude: r.lng
-          }))} />
+          <MapView
+            markers={soilRecords.map((r) => ({
+              ...r,
+              latitude: r.lat,
+              longitude: r.lng,
+            }))}
+          />
         </IonContent>
       </IonModal>
     </IonPage>
