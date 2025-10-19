@@ -1,0 +1,71 @@
+.dashboard-bg {
+  --background: linear-gradient(135deg, #0a0a0a, #017a22);
+  color: white;
+}
+
+.header-gradient {
+  --background: linear-gradient(90deg, #060606, #026b1e);
+  color: white;
+}
+
+h2 {
+  color: #fefefe;
+  margin-bottom: 12px;
+}
+
+IonCard {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: white;
+}
+
+IonItem {
+  background: rgba(1, 85, 17, 0.05);
+  margin-bottom: 10px;
+  border-radius: 6px;
+  color: white;
+}
+
+IonInput, IonLabel {
+  color: white;
+}
+
+IonButton {
+  --background: #028000;
+  --color: white;
+}
+
+IonButton[color="danger"] {
+  --background: #c00;
+  --color: white;
+}
+
+.dashboard-bg {
+  --background: linear-gradient(135deg, #0a0a0a, #017a22);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.header-gradient {
+  --background: linear-gradient(90deg, #060606, #026b1e);
+  color: white;
+}
+
+.dashboard-card {
+  background: rgba(0, 0, 0, 0.35);
+  color: rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.dashboard-avatar {
+  width: 120px;
+  height: 120px;
+  margin: 20px auto;
+}
+
+.dashboard-item {
+  background: rgba(255, 255, 255, 0.05);
+  margin-bottom: 10px;
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.9);
+}
+

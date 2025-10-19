@@ -50,14 +50,16 @@
   background: rgba(1, 115, 1, 0.4);
 }
 
+/* 🖤 Black soil data management box */
 .floating-soil-box {
   position: absolute;
   top: 70px;
   right: 25px;
-  background: rgba(255, 255, 255, 0.98);
+  background: #000; /* changed to black */
+  color: white; /* make text readable */
   padding: 16px;
   border-radius: 12px;
-  box-shadow: 0 3px 15px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 3px 15px rgba(0, 0, 0, 0.8);
   width: 280px;
   max-height: 85vh;
   overflow-y: auto;
@@ -65,6 +67,7 @@
   transition: all 0.4s ease-in-out;
   opacity: 0;
   transform: translateY(-20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .floating-soil-box.slide-in {
@@ -90,7 +93,7 @@
   font-weight: 600;
   margin-top: 8px;
   display: block;
-  color: #333;
+  color: #ddd;
 }
 
 .soil-form-body input,
@@ -99,6 +102,8 @@
   padding: 6px 8px;
   margin-top: 4px;
   border-radius: 6px;
-  border: 1px solid #ccc;
+  border: 1px solid #555;
+  background: #111;
+  color: white;
   outline: none;
 }

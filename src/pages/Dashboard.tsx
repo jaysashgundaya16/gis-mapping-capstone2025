@@ -66,7 +66,6 @@ const Dashboard: React.FC = () => {
   const [moisture, setMoisture] = useState<number | undefined>(50);
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  // ✅ Load all records live
   useEffect(() => {
     const unsub = onSnapshot(collection(db, "soilData"), (snap) => {
       const data: SoilRecord[] = [];
@@ -78,7 +77,6 @@ const Dashboard: React.FC = () => {
     return () => unsub();
   }, []);
 
-  // ✅ Detect if there's an ID in the route (for editing from SDMD)
   useIonViewWillEnter(() => {
     const loadRecord = async () => {
       const url = new URL(window.location.href);
@@ -102,7 +100,6 @@ const Dashboard: React.FC = () => {
         }
       }
     };
-
     void loadRecord();
   });
 
@@ -111,7 +108,6 @@ const Dashboard: React.FC = () => {
     setLng(lng);
   };
 
-  // ✅ Save or update data
   const saveSoilData = async () => {
     const payload = {
       cropName: cropName || "Unknown",
@@ -154,7 +150,6 @@ const Dashboard: React.FC = () => {
   return (
     <>
       <SideMenu />
-
       <IonPage id="main-content">
         <IonHeader translucent>
           <IonToolbar className="header-gradient">

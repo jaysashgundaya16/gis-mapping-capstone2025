@@ -15,9 +15,9 @@ import {
   IonLabel,
   IonInput,
   IonButton,
-  useIonAlert,
   IonAvatar,
   IonSpinner,
+  useIonAlert,
 } from "@ionic/react";
 import SideMenu from "../components/SideMenu";
 import { auth, db } from "../firebaseConfig";
@@ -30,36 +30,28 @@ import {
   onAuthStateChanged,
 } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import {
-  getStorage,
-  ref,
-  uploadBytesResumable,
-  getDownloadURL,
-} from "firebase/storage";
+import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import imageCompression from "browser-image-compression";
+import "./EditProfile.css"; // For dashboard gradient styling
 
 const EditProfile: React.FC = () => {
   const [presentAlert] = useIonAlert();
 
-  // Profile states
   const [uid, setUid] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [photoUrl, setPhotoUrl] = useState<string>("https://i.pravatar.cc/300");
 
-  // Password states
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  // Uploading state
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
 
   const storage = getStorage();
 
-  // ✅ Load user data on login
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
@@ -80,15 +72,12 @@ const EditProfile: React.FC = () => {
     return () => unsubscribe();
   }, []);
 
-  // ✅ Save profile (name, phone, email)
   const handleSaveProfile = async () => {
     try {
       const user = auth.currentUser;
       if (!user) return;
 
-      if (email !== user.email) {
-        await updateEmail(user, email);
-      }
+      if (email !== user.email) await updateEmail(user, email);
 
       await setDoc(
         doc(db, "users", user.uid),
@@ -110,7 +99,6 @@ const EditProfile: React.FC = () => {
     }
   };
 
-  // ✅ Upload & update profile photo
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     try {
       const file = e.target.files?.[0];
@@ -119,9 +107,8 @@ const EditProfile: React.FC = () => {
       setUploading(true);
       setUploadProgress(0);
 
-      // Compress before upload
       const compressedFile = await imageCompression(file, {
-        maxSizeMB: 0.2, // ~200 KB
+        maxSizeMB: 0.2,
         maxWidthOrHeight: 300,
         useWebWorker: true,
       });
@@ -132,31 +119,19 @@ const EditProfile: React.FC = () => {
       uploadTask.on(
         "state_changed",
         (snapshot) => {
-          const progress =
-            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
           setUploadProgress(Math.round(progress));
         },
         async (error) => {
-          presentAlert({
-            header: "Upload Error",
-            message: error.message,
-            buttons: ["OK"],
-          });
+          presentAlert({ header: "Upload Error", message: error.message, buttons: ["OK"] });
           setUploading(false);
         },
         async () => {
-          let downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-          const freshUrl = `${downloadURL}?t=${Date.now()}`; // ✅ cache-busting
-
-          // Update state immediately
+          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+          const freshUrl = `${downloadURL}?t=${Date.now()}`;
           setPhotoUrl(freshUrl);
 
-          // Update Firestore
-          await setDoc(
-            doc(db, "users", uid),
-            { photoUrl: freshUrl },
-            { merge: true }
-          );
+          await setDoc(doc(db, "users", uid), { photoUrl: freshUrl }, { merge: true });
 
           presentAlert({
             header: "Profile Picture Updated",
@@ -170,33 +145,21 @@ const EditProfile: React.FC = () => {
         }
       );
     } catch (error: any) {
-      presentAlert({
-        header: "Error",
-        message: error.message,
-        buttons: ["OK"],
-      });
+      presentAlert({ header: "Error", message: error.message, buttons: ["OK"] });
       setUploading(false);
     }
   };
 
-  // ✅ Update password
   const handleUpdatePassword = async () => {
     try {
       if (newPassword !== confirmPassword) {
-        return presentAlert({
-          header: "Error",
-          message: "Passwords do not match.",
-          buttons: ["OK"],
-        });
+        return presentAlert({ header: "Error", message: "Passwords do not match.", buttons: ["OK"] });
       }
 
       const user = auth.currentUser;
       if (!user || !user.email) return;
 
-      const credential = EmailAuthProvider.credential(
-        user.email,
-        currentPassword
-      );
+      const credential = EmailAuthProvider.credential(user.email, currentPassword);
       await reauthenticateWithCredential(user, credential);
       await updatePassword(user, newPassword);
 
@@ -210,15 +173,10 @@ const EditProfile: React.FC = () => {
       setNewPassword("");
       setConfirmPassword("");
     } catch (error: any) {
-      presentAlert({
-        header: "Error",
-        message: error.message,
-        buttons: ["OK"],
-      });
+      presentAlert({ header: "Error", message: error.message, buttons: ["OK"] });
     }
   };
 
-  // ✅ Close account
   const handleCloseAccount = async () => {
     try {
       const user = auth.currentUser;
@@ -226,27 +184,18 @@ const EditProfile: React.FC = () => {
 
       await deleteUser(user);
 
-      presentAlert({
-        header: "Account Deleted",
-        message: "Your account has been permanently deleted.",
-        buttons: ["OK"],
-      });
+      presentAlert({ header: "Account Deleted", message: "Your account has been permanently deleted.", buttons: ["OK"] });
     } catch (error: any) {
-      presentAlert({
-        header: "Error",
-        message: error.message,
-        buttons: ["OK"],
-      });
+      presentAlert({ header: "Error", message: error.message, buttons: ["OK"] });
     }
   };
 
   return (
     <>
       <SideMenu />
-
       <IonPage id="main-content">
         <IonHeader translucent>
-          <IonToolbar>
+          <IonToolbar className="header-gradient">
             <IonButtons slot="start">
               <IonMenuButton />
             </IonButtons>
@@ -254,15 +203,21 @@ const EditProfile: React.FC = () => {
           </IonToolbar>
         </IonHeader>
 
-        <IonContent fullscreen className="ion-padding">
+        <IonContent fullscreen className="dashboard-bg ion-padding">
           <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
-            {/* Left Profile Card */}
+            {/* Profile Card */}
             <IonCard
-              style={{ flex: "1 1 250px", maxWidth: "300px", textAlign: "center" }}
+              style={{
+                flex: "1 1 250px",
+                maxWidth: "300px",
+                textAlign: "center",
+                background: "rgba(0, 128, 0, 0.3)",
+                color: "rgba(255, 255, 255, 0.9)",
+                borderRadius: "12px",
+                padding: "10px",
+              }}
             >
-              <IonAvatar
-                style={{ width: "120px", height: "120px", margin: "20px auto" }}
-              >
+              <IonAvatar style={{ width: "120px", height: "120px", margin: "20px auto" }}>
                 {uploading ? (
                   <div style={{ textAlign: "center" }}>
                     <IonSpinner name="crescent" />
@@ -278,91 +233,61 @@ const EditProfile: React.FC = () => {
               <IonCardContent>
                 <p>{email}</p>
                 <p>{phone}</p>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handlePhotoUpload}
-                />
-                <IonButton
-                  expand="block"
-                  color="danger"
-                  style={{ marginTop: "10px" }}
-                  onClick={handleCloseAccount}
-                >
+                <input type="file" accept="image/*" onChange={handlePhotoUpload} />
+                <IonButton expand="block" color="danger" style={{ marginTop: "10px" }} onClick={handleCloseAccount}>
                   Close Account
                 </IonButton>
               </IonCardContent>
             </IonCard>
 
-            {/* Right Form */}
-            <div style={{ flex: "2 1 500px", minWidth: "300px" }}>
+            {/* Profile Form */}
+            <div
+              style={{
+                flex: "2 1 500px",
+                minWidth: "300px",
+                background: "rgba(0, 128, 0, 0.3)",
+                borderRadius: "12px",
+                padding: "20px",
+                color: "rgba(255, 255, 255, 0.9)",
+              }}
+            >
               <h2>User Information</h2>
-              <IonItem>
+              <IonItem style={{ background: "rgba(255,255,255,0.05)", marginBottom: "10px", borderRadius: "8px" }}>
                 <IonLabel position="stacked">Name</IonLabel>
-                <IonInput
-                  value={name}
-                  onIonChange={(e) => setName(e.detail.value!)}
-                />
+                <IonInput value={name} onIonChange={(e) => setName(e.detail.value!)} />
               </IonItem>
 
-              <IonItem>
+              <IonItem style={{ background: "rgba(255,255,255,0.05)", marginBottom: "10px", borderRadius: "8px" }}>
                 <IonLabel position="stacked">Email</IonLabel>
-                <IonInput
-                  value={email}
-                  onIonChange={(e) => setEmail(e.detail.value!)}
-                />
+                <IonInput value={email} onIonChange={(e) => setEmail(e.detail.value!)} />
               </IonItem>
 
-              <IonItem>
+              <IonItem style={{ background: "rgba(255,255,255,0.05)", marginBottom: "10px", borderRadius: "8px" }}>
                 <IonLabel position="stacked">Phone</IonLabel>
-                <IonInput
-                  value={phone}
-                  onIonChange={(e) => setPhone(e.detail.value!)}
-                />
+                <IonInput value={phone} onIonChange={(e) => setPhone(e.detail.value!)} />
               </IonItem>
 
-              <IonButton
-                expand="block"
-                style={{ marginTop: "16px" }}
-                onClick={handleSaveProfile}
-              >
+              <IonButton expand="block" style={{ marginTop: "16px" }} onClick={handleSaveProfile}>
                 Save Now
               </IonButton>
 
               <h2 style={{ marginTop: "30px" }}>Password</h2>
-              <IonItem>
+              <IonItem style={{ background: "rgba(255,255,255,0.05)", marginBottom: "10px", borderRadius: "8px" }}>
                 <IonLabel position="stacked">Current Password</IonLabel>
-                <IonInput
-                  type="password"
-                  value={currentPassword}
-                  onIonChange={(e) => setCurrentPassword(e.detail.value!)}
-                />
+                <IonInput type="password" value={currentPassword} onIonChange={(e) => setCurrentPassword(e.detail.value!)} />
               </IonItem>
 
-              <IonItem>
+              <IonItem style={{ background: "rgba(255,255,255,0.05)", marginBottom: "10px", borderRadius: "8px" }}>
                 <IonLabel position="stacked">New Password</IonLabel>
-                <IonInput
-                  type="password"
-                  value={newPassword}
-                  onIonChange={(e) => setNewPassword(e.detail.value!)}
-                />
+                <IonInput type="password" value={newPassword} onIonChange={(e) => setNewPassword(e.detail.value!)} />
               </IonItem>
 
-              <IonItem>
+              <IonItem style={{ background: "rgba(255,255,255,0.05)", marginBottom: "10px", borderRadius: "8px" }}>
                 <IonLabel position="stacked">Confirm New Password</IonLabel>
-                <IonInput
-                  type="password"
-                  value={confirmPassword}
-                  onIonChange={(e) => setConfirmPassword(e.detail.value!)}
-                />
+                <IonInput type="password" value={confirmPassword} onIonChange={(e) => setConfirmPassword(e.detail.value!)} />
               </IonItem>
 
-              <IonButton
-                expand="block"
-                color="success"
-                style={{ marginTop: "16px" }}
-                onClick={handleUpdatePassword}
-              >
+              <IonButton expand="block" color="success" style={{ marginTop: "16px" }} onClick={handleUpdatePassword}>
                 Update Password
               </IonButton>
             </div>

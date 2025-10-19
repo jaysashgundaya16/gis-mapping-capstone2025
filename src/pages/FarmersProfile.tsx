@@ -19,12 +19,11 @@ import {
   IonLabel,
   IonItem,
   IonLoading,
+  IonSearchbar,
 } from "@ionic/react";
 import { menuOutline, createOutline, trashOutline, addOutline } from "ionicons/icons";
 import SideMenu from "../components/SideMenu";
-
-// Firestore
-import { db } from "../firebaseConfig"; // ✅ Make sure this points to your firebase.ts file
+import { db } from "../firebaseConfig";
 import {
   collection,
   addDoc,
@@ -32,91 +31,128 @@ import {
   deleteDoc,
   doc,
   onSnapshot,
+  query,
+  orderBy,
 } from "firebase/firestore";
 
-interface Farmer {
+interface SoilTest {
   id: string;
-  firstName: string;
-  lastName: string;
-  age: number;
-  gender: string;
-  brgy: string;
-  education: string;
-  exp: number;
-  financial: string;
-  landArea: number;
-  landTenure: string;
+  farmerName: string;
+  siteOfFarm: string;
+  area: string;
+  crop: string;
+  ph: string;
+  nitrogen: string;
+  phosphorus: string;
+  potassium: string;
+  lime: string;
+  nVal: string;
+  pVal: string;
+  kVal: string;
 }
 
 const FarmersProfile: React.FC = () => {
   const [municipality, setMunicipality] = useState("Lingion");
-  const [farmers, setFarmers] = useState<Farmer[]>([]);
+  const [records, setRecords] = useState<SoilTest[]>([]);
+  const [filteredRecords, setFilteredRecords] = useState<SoilTest[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
-
   const [showModal, setShowModal] = useState(false);
-  const [editingFarmer, setEditingFarmer] = useState<Farmer | null>(null);
-  const [form, setForm] = useState<Partial<Farmer>>({});
+  const [editingRecord, setEditingRecord] = useState<SoilTest | null>(null);
+  const [form, setForm] = useState<Partial<SoilTest>>({});
 
-  // ✅ Fetch Farmers from Firestore in real-time
+  // ✅ Fetch all soil test records
   useEffect(() => {
-    const unsub = onSnapshot(collection(db, "farmers"), (snapshot) => {
-      const farmerData: Farmer[] = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...(doc.data() as Omit<Farmer, "id">),
-      }));
-      setFarmers(farmerData);
-      setLoading(false);
-    });
-
-    return () => unsub(); // cleanup listener
+    const q = query(collection(db, "soilTests"), orderBy("farmerName"));
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const data: SoilTest[] = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...(doc.data() as Omit<SoilTest, "id">),
+        }));
+        setRecords(data);
+        setFilteredRecords(data);
+        setLoading(false);
+      },
+      (error) => {
+        console.error("Firestore fetch error:", error);
+        setLoading(false);
+      }
+    );
+    return () => unsubscribe();
   }, []);
 
-  // ✅ Open Add Form
-  const openAddFarmer = () => {
+  // ✅ Filter records by search term
+  useEffect(() => {
+    const filtered = records.filter((rec) =>
+      rec.farmerName?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredRecords(filtered);
+  }, [searchTerm, records]);
+
+  // ✅ Add new record
+  const openAdd = () => {
     setForm({});
-    setEditingFarmer(null);
+    setEditingRecord(null);
     setShowModal(true);
   };
 
-  // ✅ Open Edit Form
-  const openEditFarmer = (farmer: Farmer) => {
-    setForm(farmer);
-    setEditingFarmer(farmer);
+  // ✅ Edit existing record
+  const openEdit = (record: SoilTest) => {
+    setForm(record);
+    setEditingRecord(record);
     setShowModal(true);
   };
 
-  // ✅ Save Farmer (Add or Update)
+  // ✅ Save record
   const handleSave = async () => {
-    if (editingFarmer) {
-      const farmerRef = doc(db, "farmers", editingFarmer.id);
-      await updateDoc(farmerRef, { ...form });
-    } else {
-      await addDoc(collection(db, "farmers"), {
-        firstName: form.firstName || "",
-        lastName: form.lastName || "",
-        age: Number(form.age) || 0,
-        gender: form.gender || "",
-        brgy: form.brgy || "",
-        education: form.education || "",
-        exp: Number(form.exp) || 0,
-        financial: form.financial || "",
-        landArea: Number(form.landArea) || 0,
-        landTenure: form.landTenure || "",
-      });
+    if (!form.farmerName || !form.siteOfFarm || !form.area || !form.crop) {
+      alert("Please fill in all required fields.");
+      return;
     }
+
+    try {
+      if (editingRecord) {
+        await updateDoc(doc(db, "soilTests", editingRecord.id), { ...form });
+      } else {
+        await addDoc(collection(db, "soilTests"), {
+          farmerName: form.farmerName,
+          siteOfFarm: form.siteOfFarm,
+          area: form.area,
+          crop: form.crop,
+          ph: form.ph || "",
+          nitrogen: form.nitrogen || "",
+          phosphorus: form.phosphorus || "",
+          potassium: form.potassium || "",
+          lime: form.lime || "",
+          nVal: form.nVal || "",
+          pVal: form.pVal || "",
+          kVal: form.kVal || "",
+        });
+      }
+    } catch (err) {
+      console.error("Error saving record:", err);
+      alert("Error saving record. Check console for details.");
+    }
+
     setShowModal(false);
+    setEditingRecord(null);
+    setForm({});
   };
 
-  // ✅ Delete Farmer
+  // ✅ Delete record
   const handleDelete = async (id: string) => {
-    await deleteDoc(doc(db, "farmers", id));
+    if (window.confirm("Are you sure you want to delete this record?")) {
+      await deleteDoc(doc(db, "soilTests", id));
+    }
   };
 
   return (
     <>
       <SideMenu />
       <IonPage id="main-content">
-        {/* 📌 Top Header */}
+        {/* 📌 Header */}
         <IonHeader>
           <IonToolbar color="dark green">
             <IonButtons slot="start">
@@ -128,178 +164,170 @@ const FarmersProfile: React.FC = () => {
           </IonToolbar>
         </IonHeader>
 
-        <IonContent>
-          <IonLoading isOpen={loading} message="Loading farmers..." />
+        <IonContent fullscreen>
+          <IonLoading
+            isOpen={loading}
+            message="Loading soil test records..."
+            spinner="circles"
+          />
 
-          {/* 📌 Government Info Row */}
-          <div style={{ backgroundColor: "#07371aff", color: "white", padding: "15px" }}>
-            <IonGrid>
-              <IonRow>
-                <IonCol size="4">
-                  <h3>Local Government Officials</h3>
-                  <p>Governor: manolo fortich.gov</p>
-                  <p>Vice Governor: manolo fortich.vgov</p>
-                  <p>Prov. Agri. Officer: manolo fortich.prago</p>
-                </IonCol>
-                <IonCol size="4">
-                  <h3>Provincial Agriculture Personnel</h3>
-                  <p>Asst. Agri Prov. Officer: manolo fortich.asstprago</p>
-                  <p>Total # of Prov. Agriculturist: 1</p>
-                  <p>Total # of Prov. Agricultural Tech.: 1</p>
-                </IonCol>
-                <IonCol size="4">
-                  <h3>Select Barangay</h3>
-                  <IonSelect
-                    value={municipality}
-                    placeholder="Select"
-                    onIonChange={(e) => setMunicipality(e.detail.value)}
-                  >
-                    <IonSelectOption value="Lingion">Lingion</IonSelectOption>
-                  </IonSelect>
-                </IonCol>
-              </IonRow>
-            </IonGrid>
-          </div>
+          {!loading && (
+            <>
+              {/* 📌 Government Info */}
+              <div style={{ backgroundColor: "#07371aff", color: "white", padding: "15px" }}>
+                <IonGrid>
+                  <IonRow>
+                    <IonCol size="4">
+                      <h3>Local Government Officials</h3>
+                      <p>Governor: manolo fortich.gov</p>
+                      <p>Vice Governor: manolo fortich.vgov</p>
+                      <p>Prov. Agri. Officer: manolo fortich.prago</p>
+                    </IonCol>
+                    <IonCol size="4">
+                      <h3>Provincial Agriculture Personnel</h3>
+                      <p>Asst. Agri Prov. Officer: manolo fortich.asstprago</p>
+                      <p>Total # of Prov. Agriculturist: 1</p>
+                      <p>Total # of Prov. Agricultural Tech.: 1</p>
+                    </IonCol>
+                    <IonCol size="4">
+                      <h3>Select Barangay</h3>
+                      <IonSelect
+                        value={municipality}
+                        placeholder="Select"
+                        onIonChange={(e) => setMunicipality(e.detail.value)}
+                      >
+                        <IonSelectOption value="Lingion">Lingion</IonSelectOption>
+                      </IonSelect>
+                    </IonCol>
+                  </IonRow>
+                </IonGrid>
+              </div>
 
-          {/* 📌 Add Farmer Button */}
-          <IonButton expand="block" color="success" className="ion-margin" onClick={openAddFarmer}>
-            <IonIcon icon={addOutline} slot="start" />
-            Add Farmer
-          </IonButton>
-
-          {/* 📌 Farmer Data Table */}
-          <IonGrid className="ion-margin-top">
-            <IonRow style={{ background: "#012917ff", color: "white", fontWeight: "bold" }}>
-              <IonCol size="1">#</IonCol>
-              <IonCol>First Name</IonCol>
-              <IonCol>Last Name</IonCol>
-              <IonCol>Age</IonCol>
-              <IonCol>Gender</IonCol>
-              <IonCol>Brgy</IonCol>
-              <IonCol>Education</IonCol>
-              <IonCol>Farming Exp</IonCol>
-              <IonCol>Financial Stat</IonCol>
-              <IonCol>Land Area</IonCol>
-              <IonCol>Land Tenure</IonCol>
-              <IonCol size="2">Options</IonCol>
-            </IonRow>
-
-            {farmers.length === 0 ? (
-              <IonRow>
-                <IonCol size="12" style={{ textAlign: "center", padding: "20px", color: "gray" }}>
-                  No farmer records found.
-                </IonCol>
-              </IonRow>
-            ) : (
-              farmers.map((farmer, index) => (
-                <IonRow key={farmer.id} style={{ borderBottom: "1px solid #ccc" }}>
-                  <IonCol size="1">{index + 1}</IonCol>
-                  <IonCol>{farmer.firstName}</IonCol>
-                  <IonCol>{farmer.lastName}</IonCol>
-                  <IonCol>{farmer.age}</IonCol>
-                  <IonCol>{farmer.gender}</IonCol>
-                  <IonCol>{farmer.brgy}</IonCol>
-                  <IonCol>{farmer.education}</IonCol>
-                  <IonCol>{farmer.exp}</IonCol>
-                  <IonCol>{farmer.financial}</IonCol>
-                  <IonCol>{farmer.landArea}</IonCol>
-                  <IonCol>{farmer.landTenure}</IonCol>
-                  <IonCol size="2">
-                    <IonButton size="small" color="primary" onClick={() => openEditFarmer(farmer)}>
-                      <IonIcon icon={createOutline} />
-                    </IonButton>
-                    <IonButton size="small" color="danger" onClick={() => handleDelete(farmer.id)}>
-                      <IonIcon icon={trashOutline} />
+              {/* 📌 Search + Add */}
+              <IonGrid>
+                <IonRow className="ion-align-items-center ion-padding-horizontal ion-margin-top">
+                  <IonCol size="8">
+                    <IonSearchbar
+                      value={searchTerm}
+                      debounce={400}
+                      onIonInput={(e) => setSearchTerm(e.detail.value!)}
+                      placeholder="Search by Farmer Name..."
+                    />
+                  </IonCol>
+                  <IonCol size="4" className="ion-text-right">
+                    <IonButton color="success" onClick={openAdd}>
+                      <IonIcon icon={addOutline} slot="start" />
+                      Add Record
                     </IonButton>
                   </IonCol>
                 </IonRow>
-              ))
-            )}
-          </IonGrid>
+              </IonGrid>
+
+              {/* 📌 Data Table */}
+              <IonGrid>
+                <IonRow style={{ background: "#012917ff", color: "white", fontWeight: "bold" }}>
+                  <IonCol size="1">#</IonCol>
+                  <IonCol>Farmer Name</IonCol>
+                  <IonCol>Site of Farm</IonCol>
+                  <IonCol>Area</IonCol>
+                  <IonCol>Crop</IonCol>
+                  <IonCol>pH</IonCol>
+                  <IonCol>N</IonCol>
+                  <IonCol>P</IonCol>
+                  <IonCol>K</IonCol>
+                  <IonCol>Lime</IonCol>
+                  <IonCol>N (kg)</IonCol>
+                  <IonCol>P (kg)</IonCol>
+                  <IonCol>K (kg)</IonCol>
+                  <IonCol size="2">Options</IonCol>
+                </IonRow>
+
+                {filteredRecords.length === 0 ? (
+                  <IonRow>
+                    <IonCol
+                      size="12"
+                      style={{ textAlign: "center", padding: "20px", color: "gray" }}
+                    >
+                      No matching records found.
+                    </IonCol>
+                  </IonRow>
+                ) : (
+                  filteredRecords.map((rec, index) => (
+                    <IonRow key={rec.id} style={{ borderBottom: "1px solid #ccc" }}>
+                      <IonCol size="1">{index + 1}</IonCol>
+                      <IonCol>{rec.farmerName}</IonCol>
+                      <IonCol>{rec.siteOfFarm}</IonCol>
+                      <IonCol>{rec.area}</IonCol>
+                      <IonCol>{rec.crop}</IonCol>
+                      <IonCol>{rec.ph}</IonCol>
+                      <IonCol>{rec.nitrogen}</IonCol>
+                      <IonCol>{rec.phosphorus}</IonCol>
+                      <IonCol>{rec.potassium}</IonCol>
+                      <IonCol>{rec.lime}</IonCol>
+                      <IonCol>{rec.nVal}</IonCol>
+                      <IonCol>{rec.pVal}</IonCol>
+                      <IonCol>{rec.kVal}</IonCol>
+                      <IonCol size="2">
+                        <IonButton size="small" color="primary" onClick={() => openEdit(rec)}>
+                          <IonIcon icon={createOutline} />
+                        </IonButton>
+                        <IonButton size="small" color="danger" onClick={() => handleDelete(rec.id)}>
+                          <IonIcon icon={trashOutline} />
+                        </IonButton>
+                      </IonCol>
+                    </IonRow>
+                  ))
+                )}
+              </IonGrid>
+            </>
+          )}
 
           {/* 📌 Add/Edit Modal */}
           <IonModal isOpen={showModal} onDidDismiss={() => setShowModal(false)}>
             <IonHeader>
               <IonToolbar>
-                <IonTitle>{editingFarmer ? "Edit Farmer" : "Add Farmer"}</IonTitle>
+                <IonTitle>{editingRecord ? "Edit Soil Test Record" : "Add Soil Test Record"}</IonTitle>
               </IonToolbar>
             </IonHeader>
-            <IonContent className="ion-padding">
-              <IonItem>
-                <IonLabel position="stacked">First Name</IonLabel>
-                <IonInput
-                  value={form.firstName}
-                  onIonChange={(e) => setForm({ ...form, firstName: e.detail.value! })}
-                />
-              </IonItem>
-              <IonItem>
-                <IonLabel position="stacked">Last Name</IonLabel>
-                <IonInput
-                  value={form.lastName}
-                  onIonChange={(e) => setForm({ ...form, lastName: e.detail.value! })}
-                />
-              </IonItem>
-              <IonItem>
-                <IonLabel position="stacked">Age</IonLabel>
-                <IonInput
-                  type="number"
-                  value={form.age}
-                  onIonChange={(e) => setForm({ ...form, age: Number(e.detail.value!) })}
-                />
-              </IonItem>
-              <IonItem>
-                <IonLabel position="stacked">Gender</IonLabel>
-                <IonInput
-                  value={form.gender}
-                  onIonChange={(e) => setForm({ ...form, gender: e.detail.value! })}
-                />
-              </IonItem>
-              <IonItem>
-                <IonLabel position="stacked">Barangay</IonLabel>
-                <IonInput
-                  value={form.brgy}
-                  onIonChange={(e) => setForm({ ...form, brgy: e.detail.value! })}
-                />
-              </IonItem>
-              <IonItem>
-                <IonLabel position="stacked">Education</IonLabel>
-                <IonInput
-                  value={form.education}
-                  onIonChange={(e) => setForm({ ...form, education: e.detail.value! })}
-                />
-              </IonItem>
-              <IonItem>
-                <IonLabel position="stacked">Farming Experience (years)</IonLabel>
-                <IonInput
-                  type="number"
-                  value={form.exp}
-                  onIonChange={(e) => setForm({ ...form, exp: Number(e.detail.value!) })}
-                />
-              </IonItem>
-              <IonItem>
-                <IonLabel position="stacked">Financial Status</IonLabel>
-                <IonInput
-                  value={form.financial}
-                  onIonChange={(e) => setForm({ ...form, financial: e.detail.value! })}
-                />
-              </IonItem>
-              <IonItem>
-                <IonLabel position="stacked">Land Area (ha)</IonLabel>
-                <IonInput
-                  type="number"
-                  value={form.landArea}
-                  onIonChange={(e) => setForm({ ...form, landArea: Number(e.detail.value!) })}
-                />
-              </IonItem>
-              <IonItem>
-                <IonLabel position="stacked">Land Tenure</IonLabel>
-                <IonInput
-                  value={form.landTenure}
-                  onIonChange={(e) => setForm({ ...form, landTenure: e.detail.value! })}
-                />
-              </IonItem>
 
-              <IonButton expand="block" className="ion-margin-top" onClick={handleSave}>
+            <IonContent className="ion-padding">
+              {[
+                { label: "Name of Farmer", key: "farmerName" },
+                { label: "Site of Farm", key: "siteOfFarm" },
+                { label: "Area (ha)", key: "area" },
+                { label: "Crop", key: "crop" },
+                { label: "pH", key: "ph" },
+                { label: "Lime (tons/ha)", key: "lime" },
+                { label: "N (kg/ha/kg/plant)", key: "nVal" },
+                { label: "P (kg/ha/kg/plant)", key: "pVal" },
+                { label: "K (kg/ha/kg/plant)", key: "kVal" },
+              ].map((field) => (
+                <IonItem key={field.key}>
+                  <IonLabel position="stacked">{field.label}</IonLabel>
+                  <IonInput
+                    value={(form as any)[field.key]}
+                    onIonChange={(e) => setForm({ ...form, [field.key]: e.detail.value! })}
+                  />
+                </IonItem>
+              ))}
+
+              {["nitrogen", "phosphorus", "potassium"].map((nutrient) => (
+                <IonItem key={nutrient}>
+                  <IonLabel position="stacked">
+                    {nutrient.charAt(0).toUpperCase() + nutrient.slice(1)}
+                  </IonLabel>
+                  <IonSelect
+                    value={(form as any)[nutrient]}
+                    onIonChange={(e) => setForm({ ...form, [nutrient]: e.detail.value })}
+                  >
+                    <IonSelectOption value="L">Low</IonSelectOption>
+                    <IonSelectOption value="M">Medium</IonSelectOption>
+                    <IonSelectOption value="H">High</IonSelectOption>
+                  </IonSelect>
+                </IonItem>
+              ))}
+
+              <IonButton expand="block" color="success" onClick={handleSave} className="ion-margin-top">
                 Save
               </IonButton>
               <IonButton expand="block" color="medium" onClick={() => setShowModal(false)}>

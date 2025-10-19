@@ -43,13 +43,13 @@ const SideMenu: React.FC = () => {
             setUserData({
               name: docSnap.data().name || "User",
               email: firebaseUser.email,
-              photoUrl: docSnap.data().photoUrl || "https://i.pravatar.cc/150",
+              photoUrl: docSnap.data().photoUrl || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQFvWEC5rEnwVLeNkBbKCJTC4qZCV0qE4qc-g&s",
             });
           } else {
             setUserData({
               name: "User",
               email: firebaseUser.email,
-              photoUrl: "https://i.pravatar.cc/150",
+              photoUrl: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQFvWEC5rEnwVLeNkBbKCJTC4qZCV0qE4qc-g&s",
             });
           }
         });
@@ -131,7 +131,7 @@ const SideMenu: React.FC = () => {
       <IonFooter style={{ padding: "12px", borderTop: "1px solid #ccc" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <IonAvatar>
-            <img src={userData?.photoUrl || "https://i.pravatar.cc/150"} alt="Profile" />
+            <img src={userData?.photoUrl || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQFvWEC5rEnwVLeNkBbKCJTC4qZCV0qE4qc-g&s"} alt="Profile" />
           </IonAvatar>
           <div style={{ flex: 1 }}>
             <strong>{userData?.name || "User"}</strong>
