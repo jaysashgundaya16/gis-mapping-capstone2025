@@ -63,7 +63,7 @@ const SideMenu: React.FC = () => {
     return () => unsubscribe();
   }, []);
 
-  // ✅ Handle logout
+  // ✅ Handle logout (redirects to /login instead of /)
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -71,7 +71,7 @@ const SideMenu: React.FC = () => {
         header: "Logged Out",
         message: "You have been successfully logged out.",
         buttons: ["OK"],
-        onDidDismiss: () => router.push("/", "root"),
+        onDidDismiss: () => router.push("/login", "root"), // 🔁 CHANGED THIS LINE
       });
     } catch (error: any) {
       await presentAlert({
@@ -117,10 +117,12 @@ const SideMenu: React.FC = () => {
               <IonIcon icon={peopleCircleOutline} slot="start" />
               <IonLabel>Farmers Profile</IonLabel>
             </IonItem>
+
+            {/* ✅ Soil Data Dashboard */}
             <IonItem button onClick={() => router.push("/soil-data-dashboard", "forward")}>
-            <IonIcon icon={leafOutline} slot="start" />
-            <IonLabel>Soil Data Dashboard</IonLabel>
-          </IonItem>
+              <IonIcon icon={leafOutline} slot="start" />
+              <IonLabel>Soil Data Dashboard</IonLabel>
+            </IonItem>
           </IonMenuToggle>
         </IonList>
       </IonContent>
