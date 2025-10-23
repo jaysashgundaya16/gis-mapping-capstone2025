@@ -9,6 +9,9 @@ import { db } from "../firebaseConfig";
 import geojsonData from "../data/map.geojson?url";
 // @ts-ignore
 import lingionDataUrl from "../data/Lingi-on.geojson?url"; // ✅ load as file URL
+// @ts-ignore
+import sangkananDataUrl from "../data/sangkanan.geojson?url"; // ✅ load as file URL
+import tankulanDataUrl from "../data/tankulan.geojson?url"; // ✅ load as file URL
 
 // 📌 Helper: extract barangay name
 const getBarangayName = (feature: any): string => {
@@ -49,6 +52,8 @@ const MapView: React.FC<MapViewProps> = ({
   const [selectedBarangays, setSelectedBarangays] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [farmMarkers, setFarmMarkers] = useState<any[]>([]);
+  const [sangkananGeoJSON, setSangkananGeoJSON] = useState<any>(null); // Add this line
+  const [tankulanGeoJSON, setTankulanGeoJSON] = useState<any>(null); // Add this line
 
   // ✅ Load both GeoJSON files safely
   useEffect(() => {
@@ -69,6 +74,43 @@ const MapView: React.FC<MapViewProps> = ({
     loadFiles();
   }, []);
 
+  useEffect(() => {
+    const loadFiles = async () => {
+      try {
+        const [mapRes, sangkananRes] = await Promise.all([
+          fetch(geojsonData).then((res) => res.json()),
+          fetch(sangkananDataUrl).then((res) => res.json()),
+        ]);
+        setGeojson(mapRes);
+        setSangkananGeoJSON(sangkananRes);
+      } catch (err) {
+        console.error("❌ Failed to load GeoJSON files:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadFiles();
+  }, []);
+
+  useEffect(() => {
+    const loadFiles = async () => {
+      try {
+        const [mapRes, tankulanRes] = await Promise.all([
+          fetch(geojsonData).then((res) => res.json()),
+          fetch(tankulanDataUrl).then((res) => res.json()),
+        ]);
+        setGeojson(mapRes);
+        setTankulanGeoJSON(tankulanRes);
+      } catch (err) {
+        console.error("❌ Failed to load GeoJSON files:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadFiles();
+  }, []);
+
+  
   // ✅ Realtime listener for Firestore farms
   useEffect(() => {
     const unsub = onSnapshot(collection(db, "farms"), (snapshot) => {
@@ -90,7 +132,7 @@ const MapView: React.FC<MapViewProps> = ({
   };
 
   const defaultCenter: [number, number] = [8.3695, 124.8643];
-  const defaultZoom = 14;
+  const defaultZoom = 11;
 
   const filteredGeoJSON =
     geojson && geojson.features
@@ -210,6 +252,29 @@ const MapView: React.FC<MapViewProps> = ({
                 }}
               />
             )}
+          {/* 🔴 Separate Sangkanan Layer */}
+            {sangkananGeoJSON && (
+              <GeoJSON
+                data={sangkananGeoJSON}
+                style={{ color: "orange", weight: 3, fillOpacity: 0.15 }}
+                onEachFeature={(feature, layer) => {
+                  layer.bindTooltip("Sankanan (Updated Border)");
+                }}
+              />
+            )}
+
+            {/* 🔴 Separate Tankulan Layer */}
+            {tankulanGeoJSON && (
+              <GeoJSON
+                data={tankulanGeoJSON}
+                style={{ color: "blue", weight: 3, fillOpacity: 0.15 }}
+                onEachFeature={(feature, layer) => {
+                  layer.bindTooltip("Tankulan (Updated Border)");
+                }}
+              />
+            )}
+      
+
 
            
           </MapContainer>

@@ -1,3 +1,4 @@
+// src/pages/FarmersProfile.tsx
 import React, { useState, useEffect } from "react";
 import {
   IonPage,
@@ -21,7 +22,13 @@ import {
   IonLoading,
   IonSearchbar,
 } from "@ionic/react";
-import { menuOutline, createOutline, trashOutline, addOutline } from "ionicons/icons";
+import {
+  menuOutline,
+  createOutline,
+  trashOutline,
+  addOutline,
+  documentOutline,
+} from "ionicons/icons";
 import SideMenu from "../components/SideMenu";
 import { db } from "../firebaseConfig";
 import {
@@ -34,6 +41,8 @@ import {
   query,
   orderBy,
 } from "firebase/firestore";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 interface SoilTest {
   id: string;
@@ -49,6 +58,9 @@ interface SoilTest {
   nVal: string;
   pVal: string;
   kVal: string;
+  fertilizer1: string;
+  fertilizer2: string;
+  fertilizer3: string;
 }
 
 const FarmersProfile: React.FC = () => {
@@ -61,29 +73,22 @@ const FarmersProfile: React.FC = () => {
   const [editingRecord, setEditingRecord] = useState<SoilTest | null>(null);
   const [form, setForm] = useState<Partial<SoilTest>>({});
 
-  // ✅ Fetch all soil test records
+  // Fetch records
   useEffect(() => {
     const q = query(collection(db, "soilTests"), orderBy("farmerName"));
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        const data: SoilTest[] = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...(doc.data() as Omit<SoilTest, "id">),
-        }));
-        setRecords(data);
-        setFilteredRecords(data);
-        setLoading(false);
-      },
-      (error) => {
-        console.error("Firestore fetch error:", error);
-        setLoading(false);
-      }
-    );
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const data: SoilTest[] = snapshot.docs.map((d) => ({
+        id: d.id,
+        ...(d.data() as Omit<SoilTest, "id">),
+      }));
+      setRecords(data);
+      setFilteredRecords(data);
+      setLoading(false);
+    });
     return () => unsubscribe();
   }, []);
 
-  // ✅ Filter records by search term
+  // Filter search
   useEffect(() => {
     const filtered = records.filter((rec) =>
       rec.farmerName?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -91,27 +96,25 @@ const FarmersProfile: React.FC = () => {
     setFilteredRecords(filtered);
   }, [searchTerm, records]);
 
-  // ✅ Add new record
+  // Add/Edit
   const openAdd = () => {
     setForm({});
     setEditingRecord(null);
     setShowModal(true);
   };
 
-  // ✅ Edit existing record
   const openEdit = (record: SoilTest) => {
     setForm(record);
     setEditingRecord(record);
     setShowModal(true);
   };
 
-  // ✅ Save record
+  // Save
   const handleSave = async () => {
     if (!form.farmerName || !form.siteOfFarm || !form.area || !form.crop) {
       alert("Please fill in all required fields.");
       return;
     }
-
     try {
       if (editingRecord) {
         await updateDoc(doc(db, "soilTests", editingRecord.id), { ...form });
@@ -129,22 +132,117 @@ const FarmersProfile: React.FC = () => {
           nVal: form.nVal || "",
           pVal: form.pVal || "",
           kVal: form.kVal || "",
+          fertilizer1: form.fertilizer1 || "",
+          fertilizer2: form.fertilizer2 || "",
+          fertilizer3: form.fertilizer3 || "",
         });
       }
     } catch (err) {
       console.error("Error saving record:", err);
-      alert("Error saving record. Check console for details.");
+      alert("Error saving record.");
     }
-
     setShowModal(false);
     setEditingRecord(null);
     setForm({});
   };
 
-  // ✅ Delete record
+  // Delete
   const handleDelete = async (id: string) => {
     if (window.confirm("Are you sure you want to delete this record?")) {
       await deleteDoc(doc(db, "soilTests", id));
+    }
+  };
+
+  // Generate PDF
+  const generatePdfForRecord = async (rec: SoilTest) => {
+    try {
+      const container = document.createElement("div");
+      container.style.position = "fixed";
+      container.style.left = "-9999px";
+      container.style.width = "794px";
+      container.style.background = "white";
+      container.style.padding = "20px";
+      container.style.fontFamily = "Arial, sans-serif";
+      container.style.fontSize = "12px";
+
+      container.innerHTML = `
+        <div style="text-align:center; margin-bottom:8px;">
+          <div style="font-weight:700; font-size:16px;">Republic of the Philippines</div>
+          <div style="font-weight:700; font-size:20px;">DEPARTMENT OF AGRICULTURE</div>
+          <div style="font-size:12px;">Region No. 10</div>
+        </div>
+
+        <div style="border-top:2px solid #000; padding-top:8px; margin-bottom:7px;">
+          <div style="display:flex; justify-content:space-between;">
+            <div><strong>Name of Farmer:</strong> ${rec.farmerName || ""}</div>
+            <div><strong>Sample No.:</strong></div>
+          </div>
+          <div style="display:flex; justify-content:space-between;">
+            <div><strong>Site of Farm:</strong> ${rec.siteOfFarm || ""}</div>
+            <div><strong>Topo:</strong> PLAIN</div>
+          </div>
+          <div style="display:flex; justify-content:space-between;">
+            <div><strong>Barangay / Area:</strong> ${rec.area || ""}</div>
+            <div><strong>Area (ha):</strong> ${rec.area || ""}</div>
+          </div>
+        </div>
+
+        <div style="display:flex; border:1px solid #000; margin-bottom:8px;">
+          <div style="flex:1; border-right:1px solid #000; padding:8px;">
+            <div style="font-weight:700;">SOIL TEST KIT DATA</div>
+            <div><strong>pH:</strong> ${rec.ph || ""}</div>
+            <div><strong>Nitrogen:</strong> ${rec.nitrogen || ""}</div>
+            <div><strong>Phosphorus:</strong> ${rec.phosphorus || ""}</div>
+            <div><strong>Potassium:</strong> ${rec.potassium || ""}</div>
+          </div>
+          <div style="flex:1; padding:8px;">
+            <div style="font-weight:700; text-align:center;">NUTRIENT REQUIREMENT</div>
+            <div style="display:flex; justify-content:space-between;"><div><strong>Crop:</strong></div><div>${rec.crop || ""}</div></div>
+            <div style="display:flex; justify-content:space-between;"><div><strong>Lime:</strong></div><div>${rec.lime || ""}</div></div>
+            <div style="display:flex; justify-content:space-between;"><div><strong>N (kg/ha):</strong></div><div>${rec.nVal || ""}</div></div>
+            <div style="display:flex; justify-content:space-between;"><div><strong>P (kg/ha):</strong></div><div>${rec.pVal || ""}</div></div>
+            <div style="display:flex; justify-content:space-between;"><div><strong>K (kg/ha):</strong></div><div>${rec.kVal || ""}</div></div>
+          </div>
+        </div>
+
+        <!-- FERTILIZER RECOMMENDATION SECTION -->
+        <div style="margin-top:10px; border-top:1px solid #000; padding-top:10px;">
+          <div style="font-weight:700; text-align:center;">FERTILIZER RECOMMENDATION</div>
+          <div style="text-align:left; display:inline-block; margin-top:5px; margin-bottom:25px;">
+            <div>${rec.fertilizer1 || ""}</div>
+            <div>${rec.fertilizer2 || ""}</div>
+            <div>${rec.fertilizer3 || ""}</div>
+          </div>
+
+          <div style="display:flex; justify-content:space-between; margin-top:40px; font-size:11px;">
+            <div>
+              Legend: L - Low &nbsp;&nbsp; M - Medium &nbsp;&nbsp; H - High &nbsp;&nbsp; S - Sufficient &nbsp;&nbsp; D - Deficient
+            </div>
+            <div style="text-align:right; margin-top:25px;">
+              <div style="border-top:1px solid #000; width:200px; margin-left:auto;"></div>
+              (Personnel In-charge)
+            </div>
+          </div>
+        </div>
+      `;
+
+      document.body.appendChild(container);
+
+      const canvas = await html2canvas(container, { scale: 2, useCORS: true });
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const imgWidth = pageWidth - 10;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      pdf.addImage(imgData, "PNG", 5, 5, imgWidth, imgHeight);
+      pdf.save(`${rec.farmerName?.replace(/\s+/g, "_") || "soil_report"}.pdf`);
+
+      document.body.removeChild(container);
+    } catch (err) {
+      console.error("PDF generation error:", err);
+      alert("Failed to generate PDF.");
     }
   };
 
@@ -152,15 +250,16 @@ const FarmersProfile: React.FC = () => {
     <>
       <SideMenu />
       <IonPage id="main-content">
-        {/* 📌 Header */}
         <IonHeader>
-          <IonToolbar color="dark green">
+          <IonToolbar color="light">
             <IonButtons slot="start">
               <IonMenuButton autoHide={false}>
                 <IonIcon icon={menuOutline} />
               </IonMenuButton>
             </IonButtons>
-            <IonTitle>Manolo Fortich Farmer's Information</IonTitle>
+            <IonTitle style={{ color: "#07371A" }}>
+              Manolo Fortich Farmer's Information
+            </IonTitle>
           </IonToolbar>
         </IonHeader>
 
@@ -173,8 +272,7 @@ const FarmersProfile: React.FC = () => {
 
           {!loading && (
             <>
-              {/* 📌 Government Info */}
-              <div style={{ backgroundColor: "#07371aff", color: "white", padding: "15px" }}>
+              <div style={{ backgroundColor: "#07371A", color: "white", padding: "15px" }}>
                 <IonGrid>
                   <IonRow>
                     <IonCol size="4">
@@ -193,7 +291,6 @@ const FarmersProfile: React.FC = () => {
                       <h3>Select Barangay</h3>
                       <IonSelect
                         value={municipality}
-                        placeholder="Select"
                         onIonChange={(e) => setMunicipality(e.detail.value)}
                       >
                         <IonSelectOption value="Lingion">Lingion</IonSelectOption>
@@ -203,13 +300,11 @@ const FarmersProfile: React.FC = () => {
                 </IonGrid>
               </div>
 
-              {/* 📌 Search + Add */}
               <IonGrid>
                 <IonRow className="ion-align-items-center ion-padding-horizontal ion-margin-top">
                   <IonCol size="8">
                     <IonSearchbar
                       value={searchTerm}
-                      debounce={400}
                       onIonInput={(e) => setSearchTerm(e.detail.value!)}
                       placeholder="Search by Farmer Name..."
                     />
@@ -223,9 +318,14 @@ const FarmersProfile: React.FC = () => {
                 </IonRow>
               </IonGrid>
 
-              {/* 📌 Data Table */}
               <IonGrid>
-                <IonRow style={{ background: "#012917ff", color: "white", fontWeight: "bold" }}>
+                <IonRow
+                  style={{
+                    background: "white",
+                    fontWeight: "bold",
+                    borderBottom: "2px solid #07371A",
+                  }}
+                >
                   <IonCol size="1">#</IonCol>
                   <IonCol>Farmer Name</IonCol>
                   <IonCol>Site of Farm</IonCol>
@@ -238,22 +338,36 @@ const FarmersProfile: React.FC = () => {
                   <IonCol>Lime</IonCol>
                   <IonCol>N (kg)</IonCol>
                   <IonCol>P (kg)</IonCol>
-                  <IonCol>K (kg)</IonCol>
-                  <IonCol size="2">Options</IonCol>
+                  <IonCol size="0.9">K (kg)</IonCol>
+                  
+                  <IonCol style={{ textAlign: "center" }} >Fertilizer Recommendation</IonCol>
+                  
+                  <IonCol size="1.8"></IonCol>
                 </IonRow>
 
                 {filteredRecords.length === 0 ? (
                   <IonRow>
                     <IonCol
                       size="12"
-                      style={{ textAlign: "center", padding: "20px", color: "gray" }}
+                      style={{
+                        textAlign: "center",
+                        padding: "20px",
+                        color: "gray",
+                      }}
                     >
                       No matching records found.
                     </IonCol>
                   </IonRow>
                 ) : (
                   filteredRecords.map((rec, index) => (
-                    <IonRow key={rec.id} style={{ borderBottom: "1px solid #ccc" }}>
+                    <IonRow
+                      key={rec.id}
+                      style={{
+                        borderBottom: "1px solid #ccc",
+                        background: index % 2 === 0 ? "white" : "#f9f9f9",
+                        color: "black",
+                      }}
+                    >
                       <IonCol size="1">{index + 1}</IonCol>
                       <IonCol>{rec.farmerName}</IonCol>
                       <IonCol>{rec.siteOfFarm}</IonCol>
@@ -267,12 +381,30 @@ const FarmersProfile: React.FC = () => {
                       <IonCol>{rec.nVal}</IonCol>
                       <IonCol>{rec.pVal}</IonCol>
                       <IonCol>{rec.kVal}</IonCol>
-                      <IonCol size="2">
-                        <IonButton size="small" color="primary" onClick={() => openEdit(rec)}>
+                      <IonCol>{rec.fertilizer1}</IonCol>
+                      <IonCol>{rec.fertilizer2}</IonCol>
+                      <IonCol>{rec.fertilizer3}</IonCol>
+                      <IonCol size="1.1.8">
+                        <IonButton
+                          size="small"
+                          color="primary"
+                          onClick={() => openEdit(rec)}
+                        >
                           <IonIcon icon={createOutline} />
                         </IonButton>
-                        <IonButton size="small" color="danger" onClick={() => handleDelete(rec.id)}>
+                        <IonButton
+                          size="small"
+                          color="danger"
+                          onClick={() => handleDelete(rec.id)}
+                        >
                           <IonIcon icon={trashOutline} />
+                        </IonButton>
+                        <IonButton
+                          size="small"
+                          color="tertiary"
+                          onClick={() => generatePdfForRecord(rec)}
+                        >
+                          <IonIcon icon={documentOutline} />
                         </IonButton>
                       </IonCol>
                     </IonRow>
@@ -282,11 +414,15 @@ const FarmersProfile: React.FC = () => {
             </>
           )}
 
-          {/* 📌 Add/Edit Modal */}
+          {/* Modal */}
           <IonModal isOpen={showModal} onDidDismiss={() => setShowModal(false)}>
             <IonHeader>
-              <IonToolbar>
-                <IonTitle>{editingRecord ? "Edit Soil Test Record" : "Add Soil Test Record"}</IonTitle>
+              <IonToolbar color="light">
+                <IonTitle style={{ color: "#07371A" }}>
+                  {editingRecord
+                    ? "Edit Soil Test Record"
+                    : "Add Soil Test Record"}
+                </IonTitle>
               </IonToolbar>
             </IonHeader>
 
@@ -301,12 +437,17 @@ const FarmersProfile: React.FC = () => {
                 { label: "N (kg/ha/kg/plant)", key: "nVal" },
                 { label: "P (kg/ha/kg/plant)", key: "pVal" },
                 { label: "K (kg/ha/kg/plant)", key: "kVal" },
+                { label: "Fertilizer Recommendation 1", key: "fertilizer1" },
+                { label: "Fertilizer Recommendation 2", key: "fertilizer2" },
+                { label: "Fertilizer Recommendation 3", key: "fertilizer3" },
               ].map((field) => (
                 <IonItem key={field.key}>
                   <IonLabel position="stacked">{field.label}</IonLabel>
                   <IonInput
                     value={(form as any)[field.key]}
-                    onIonChange={(e) => setForm({ ...form, [field.key]: e.detail.value! })}
+                    onIonChange={(e) =>
+                      setForm({ ...form, [field.key]: e.detail.value! })
+                    }
                   />
                 </IonItem>
               ))}
@@ -318,7 +459,9 @@ const FarmersProfile: React.FC = () => {
                   </IonLabel>
                   <IonSelect
                     value={(form as any)[nutrient]}
-                    onIonChange={(e) => setForm({ ...form, [nutrient]: e.detail.value })}
+                    onIonChange={(e) =>
+                      setForm({ ...form, [nutrient]: e.detail.value })
+                    }
                   >
                     <IonSelectOption value="L">Low</IonSelectOption>
                     <IonSelectOption value="M">Medium</IonSelectOption>
@@ -327,10 +470,19 @@ const FarmersProfile: React.FC = () => {
                 </IonItem>
               ))}
 
-              <IonButton expand="block" color="success" onClick={handleSave} className="ion-margin-top">
+              <IonButton
+                expand="block"
+                color="success"
+                onClick={handleSave}
+                className="ion-margin-top"
+              >
                 Save
               </IonButton>
-              <IonButton expand="block" color="medium" onClick={() => setShowModal(false)}>
+              <IonButton
+                expand="block"
+                color="medium"
+                onClick={() => setShowModal(false)}
+              >
                 Cancel
               </IonButton>
             </IonContent>
