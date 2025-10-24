@@ -1,6 +1,7 @@
 .dashboard-bg {
   --background: linear-gradient(135deg, #0a0a0a, #017a22);
-  padding: 16px;
+  padding: 0;
+  margin: 0;
 }
 
 .header-gradient {
@@ -13,14 +14,6 @@
   font-size: 1.4rem;
   font-weight: 600;
   color: white;
-}
-
-.map-container {
-  margin: 16px;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  background: white;
-  overflow: hidden;
 }
 
 .map-header-bar {
@@ -50,13 +43,13 @@
   background: rgba(1, 115, 1, 0.4);
 }
 
-/* 🖤 Black soil data management box */
+/* 🖤 Black floating soil data form */
 .floating-soil-box {
   position: absolute;
   top: 70px;
   right: 25px;
-  background: #000; /* changed to black */
-  color: white; /* make text readable */
+  background: #000;
+  color: white;
   padding: 16px;
   border-radius: 12px;
   box-shadow: 0 3px 15px rgba(0, 0, 0, 0.8);
@@ -107,3 +100,31 @@
   color: white;
   outline: none;
 }
+
+.top-bar {
+  background-color: #f8f8f8;
+  padding: 10px 15px;
+  border-bottom: 1px solid #dcdcdc;
+}
+
+ion-item {
+  --background: #ffffff;
+  border-radius: 8px;
+  --inner-padding-end: 8px;
+  --inner-padding-start: 8px;
+}
+
+ion-label {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+ion-select {
+  font-size: 14px;
+}
+
+.map-container {
+  width: 100%;
+  height: calc(100vh - 180px);
+}
+

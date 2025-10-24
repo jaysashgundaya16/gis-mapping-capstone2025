@@ -1,5 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
-import { MapContainer, TileLayer, GeoJSON, Marker, Popup } from "react-leaflet";
+import {
+  MapContainer,
+  TileLayer,
+  GeoJSON,
+  Marker,
+  Popup,
+  useMapEvents,
+} from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { onSnapshot, collection } from "firebase/firestore";
@@ -8,18 +15,19 @@ import { db } from "../firebaseConfig";
 // @ts-ignore
 import geojsonData from "../data/map.geojson?url";
 // @ts-ignore
-import lingionDataUrl from "../data/Lingi-on.geojson?url"; // ✅ load as file URL
+import lingionDataUrl from "../data/Lingi-on.geojson?url";
 // @ts-ignore
-import sangkananDataUrl from "../data/sangkanan.geojson?url"; // ✅ load as file URL
-import tankulanDataUrl from "../data/tankulan.geojson?url"; // ✅ load as file URL
+import sangkananDataUrl from "../data/sangkanan.geojson?url";
+// @ts-ignore
+import tankulanDataUrl from "../data/tankulan.geojson?url";
 
-// 📌 Helper: extract barangay name
+// ✅ Helper to get barangay name
 const getBarangayName = (feature: any): string => {
   const props = feature.properties || {};
   return props.Barangay || Object.keys(props)[0] || "Unknown";
 };
 
-// 📍 Custom marker icon
+// ✅ Custom green marker
 const greenIcon = new L.Icon({
   iconUrl:
     "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png",
@@ -41,6 +49,19 @@ interface MapViewProps {
   onMapClick?: (latlng: { lat: number; lng: number }) => void;
 }
 
+// ✅ Map click handler
+const MapClickHandler: React.FC<{
+  clickToSet?: boolean;
+  onMapClick?: (latlng: { lat: number; lng: number }) => void;
+}> = ({ clickToSet, onMapClick }) => {
+  useMapEvents({
+    click(e) {
+      if (clickToSet && onMapClick) onMapClick(e.latlng);
+    },
+  });
+  return null;
+};
+
 const MapView: React.FC<MapViewProps> = ({
   markers = [],
   clickToSet = false,
@@ -49,60 +70,32 @@ const MapView: React.FC<MapViewProps> = ({
   const mapRef = useRef<L.Map | null>(null);
   const [geojson, setGeojson] = useState<any>(null);
   const [lingionGeoJSON, setLingionGeoJSON] = useState<any>(null);
-  const [selectedBarangays, setSelectedBarangays] = useState<string[]>([]);
+  const [sangkananGeoJSON, setSangkananGeoJSON] = useState<any>(null);
+  const [tankulanGeoJSON, setTankulanGeoJSON] = useState<any>(null);
+  const [selectedBarangay, setSelectedBarangay] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [farmMarkers, setFarmMarkers] = useState<any[]>([]);
-  const [sangkananGeoJSON, setSangkananGeoJSON] = useState<any>(null); // Add this line
-  const [tankulanGeoJSON, setTankulanGeoJSON] = useState<any>(null); // Add this line
+  const [showBorders, setShowBorders] = useState(false);
 
-  // ✅ Load both GeoJSON files safely
+  const defaultCenter: [number, number] = [8.3695, 124.8643];
+  const defaultZoom = 11;
+
+  // ✅ Load GeoJSON files
   useEffect(() => {
     const loadFiles = async () => {
       try {
-        const [mapRes, lingionRes] = await Promise.all([
+        const [main, lingion, sangkanan, tankulan] = await Promise.all([
           fetch(geojsonData).then((res) => res.json()),
           fetch(lingionDataUrl).then((res) => res.json()),
-        ]);
-        setGeojson(mapRes);
-        setLingionGeoJSON(lingionRes);
-      } catch (err) {
-        console.error("❌ Failed to load GeoJSON files:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadFiles();
-  }, []);
-
-  useEffect(() => {
-    const loadFiles = async () => {
-      try {
-        const [mapRes, sangkananRes] = await Promise.all([
-          fetch(geojsonData).then((res) => res.json()),
           fetch(sangkananDataUrl).then((res) => res.json()),
-        ]);
-        setGeojson(mapRes);
-        setSangkananGeoJSON(sangkananRes);
-      } catch (err) {
-        console.error("❌ Failed to load GeoJSON files:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadFiles();
-  }, []);
-
-  useEffect(() => {
-    const loadFiles = async () => {
-      try {
-        const [mapRes, tankulanRes] = await Promise.all([
-          fetch(geojsonData).then((res) => res.json()),
           fetch(tankulanDataUrl).then((res) => res.json()),
         ]);
-        setGeojson(mapRes);
-        setTankulanGeoJSON(tankulanRes);
+        setGeojson(main);
+        setLingionGeoJSON(lingion);
+        setSangkananGeoJSON(sangkanan);
+        setTankulanGeoJSON(tankulan);
       } catch (err) {
-        console.error("❌ Failed to load GeoJSON files:", err);
+        console.error("❌ GeoJSON loading error:", err);
       } finally {
         setLoading(false);
       }
@@ -110,8 +103,7 @@ const MapView: React.FC<MapViewProps> = ({
     loadFiles();
   }, []);
 
-  
-  // ✅ Realtime listener for Firestore farms
+  // ✅ Firestore farms
   useEffect(() => {
     const unsub = onSnapshot(collection(db, "farms"), (snapshot) => {
       const data = snapshot.docs.map((doc) => ({
@@ -123,78 +115,117 @@ const MapView: React.FC<MapViewProps> = ({
     return () => unsub();
   }, []);
 
-  const handleToggle = (barangay: string) => {
-    setSelectedBarangays((prev) =>
-      prev.includes(barangay)
-        ? prev.filter((b) => b !== barangay)
-        : [...prev, barangay]
-    );
+  // ✅ Barangay select handler
+  const handleBarangaySelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    if (selectedBarangay === value || value === "") {
+      // Deselect → Zoom out
+      setSelectedBarangay("");
+      setShowBorders(false);
+      if (mapRef.current) {
+        mapRef.current.setView(defaultCenter, defaultZoom);
+      }
+    } else {
+      // Select → Zoom in
+      setSelectedBarangay(value);
+      setShowBorders(true);
+    }
   };
 
-  const defaultCenter: [number, number] = [8.3695, 124.8643];
-  const defaultZoom = 11;
-
+  // ✅ Filtered GeoJSON (for selected barangay)
   const filteredGeoJSON =
-    geojson && geojson.features
+    geojson && selectedBarangay
       ? {
           ...geojson,
-          features: geojson.features.filter((f: any) =>
-            selectedBarangays.includes(getBarangayName(f))
+          features: geojson.features.filter(
+            (f: any) => getBarangayName(f) === selectedBarangay
           ),
         }
       : null;
 
+  // ✅ Adjust zoom to barangay bounds
   useEffect(() => {
     if (mapRef.current && filteredGeoJSON && filteredGeoJSON.features.length > 0) {
       const layer = L.geoJSON(filteredGeoJSON);
-      mapRef.current.fitBounds(layer.getBounds(), {
-        padding: [20, 20],
-        maxZoom: 15,
-      });
-    } else {
-      mapRef.current?.setView(defaultCenter, defaultZoom);
+      mapRef.current.fitBounds(layer.getBounds(), { padding: [20, 20], maxZoom: 15 });
     }
   }, [filteredGeoJSON]);
 
   const barangays: string[] =
-    (geojson?.features
-      ?.map((feature: any) => getBarangayName(feature)) ?? [])
-      .filter((v: any): v is string => Boolean(v))
-      .sort();
+    geojson?.features
+      ?.map((feature: any) => getBarangayName(feature))
+      .filter(Boolean)
+      .sort() ?? [];
 
   return (
-    <div style={{ display: "flex", height: "90vh", width: "100%" }}>
-      {/* 📋 Sidebar */}
+    <div style={{ display: "flex", height: "100%", width: "100%" }}>
+      {/* Sidebar */}
       <div
         style={{
-          width: "250px",
-          display: "flex",
-          flexDirection: "column",
-          background: "linear-gradient(135deg, #0b0b0b, #013c04ff)",
-          color: "#fefafaff",
-          padding: "10px",
-          fontSize: "14px",
-          borderRight: "1px solid #444",
+          width: "280px",
+          backgroundColor: "#fff",
+          borderRight: "1px solid #ccc",
+          padding: "15px",
+          overflowY: "auto",
         }}
       >
-        <h4>Barangays</h4>
-        <div style={{ flex: 1, overflowY: "auto" }}>
-          {barangays.map((bgy: string) => (
-            <div key={bgy}>
-              <label>
-                <input
-                  type="checkbox"
-                  checked={selectedBarangays.includes(bgy)}
-                  onChange={() => handleToggle(bgy)}
-                />
-                &nbsp;{bgy}
-              </label>
-            </div>
-          ))}
+        <div style={{ textAlign: "center", marginBottom: "10px" }}>
+            <img
+              src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Department_of_Agriculture_of_the_Philippines.svg/1200px-Department_of_Agriculture_of_the_Philippines.svg.png"
+              style={{ width: "130px", marginBottom: "5px" }}
+            />
+            <h3 style={{ fontSize: "16px", marginBottom: "10px" }}>
+              Department of Agriculture
+            </h3>
+          </div>
+
+
+        <div style={{ marginBottom: "10px" }}>
+          <label style={{ fontWeight: "bold" }}>Choose Map:</label>
+          <select style={{ width: "100%", padding: "6px", marginTop: "4px" }}>
+            <option>Crop Suitability</option>
+          </select>
+        </div>
+
+        <div style={{ marginBottom: "10px" }}>
+          <label style={{ fontWeight: "bold" }}>Region:</label>
+          <select style={{ width: "100%", padding: "6px" }} disabled>
+            <option>Region X</option>
+          </select>
+        </div>
+
+        <div style={{ marginBottom: "10px" }}>
+          <label style={{ fontWeight: "bold" }}>Province:</label>
+          <select style={{ width: "100%", padding: "6px" }} disabled>
+            <option>Bukidnon</option>
+          </select>
+        </div>
+
+        <div style={{ marginBottom: "10px" }}>
+          <label style={{ fontWeight: "bold" }}>Municipality:</label>
+          <select style={{ width: "100%", padding: "6px" }} disabled>
+            <option>Manolo Fortich</option>
+          </select>
+        </div>
+
+        <div>
+          <label style={{ fontWeight: "bold" }}>Barangay:</label>
+          <select
+            onChange={handleBarangaySelect}
+            value={selectedBarangay}
+            style={{ width: "100%", padding: "6px" }}
+          >
+            <option value="">Select Barangay</option>
+            {barangays.map((bgy) => (
+              <option key={bgy} value={bgy}>
+                {bgy}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
-      {/* 🗺️ Map */}
+      {/* Map */}
       <div style={{ flex: 1, position: "relative" }}>
         {loading && (
           <div
@@ -220,63 +251,47 @@ const MapView: React.FC<MapViewProps> = ({
             zoom={defaultZoom}
             style={{ height: "100%", width: "100%" }}
             ref={mapRef}
-            whenReady={() => {
-              mapRef.current?.invalidateSize();
-              mapRef.current?.setView(defaultCenter, defaultZoom);
-            }}
           >
+            <MapClickHandler clickToSet={clickToSet} onMapClick={onMapClick} />
+
             <TileLayer
               attribution="&copy; OpenStreetMap contributors"
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
 
-            {/* 🟠 Main Barangay Layer */}
-            {filteredGeoJSON && (
+            {/* Only show barangay borders when selected */}
+            {showBorders && filteredGeoJSON && (
               <GeoJSON
                 data={filteredGeoJSON}
-                style={{ color: "orange", weight: 2, fillOpacity: 0.4 }}
-                onEachFeature={(feature, layer) => {
-                  const name = getBarangayName(feature);
-                  layer.bindTooltip(name);
-                }}
+                style={{ color: "transparent", weight: 2, fillOpacity: 0.2 }}
               />
             )}
 
-            {/* 🔴 Separate Lingi-on Layer */}
+            {/* Other barangay GeoJSONs */}
             {lingionGeoJSON && (
-              <GeoJSON
-                data={lingionGeoJSON}
-                style={{ color: "black", weight: 3, fillOpacity: 0.15 }}
-                onEachFeature={(feature, layer) => {
-                  layer.bindTooltip("Lingi-on (Updated Border)");
-                }}
-              />
+              <GeoJSON data={lingionGeoJSON} style={{ color: "black", weight: 2 }} />
             )}
-          {/* 🔴 Separate Sangkanan Layer */}
             {sangkananGeoJSON && (
-              <GeoJSON
-                data={sangkananGeoJSON}
-                style={{ color: "orange", weight: 3, fillOpacity: 0.15 }}
-                onEachFeature={(feature, layer) => {
-                  layer.bindTooltip("Sankanan (Updated Border)");
-                }}
-              />
+              <GeoJSON data={sangkananGeoJSON} style={{ color: "orange", weight: 2 }} />
             )}
-
-            {/* 🔴 Separate Tankulan Layer */}
             {tankulanGeoJSON && (
-              <GeoJSON
-                data={tankulanGeoJSON}
-                style={{ color: "blue", weight: 3, fillOpacity: 0.15 }}
-                onEachFeature={(feature, layer) => {
-                  layer.bindTooltip("Tankulan (Updated Border)");
-                }}
-              />
+              <GeoJSON data={tankulanGeoJSON} style={{ color: "blue", weight: 2 }} />
             )}
-      
 
-
-           
+            {/* Farm Markers */}
+            {farmMarkers.map((farm, idx) => (
+              <Marker
+                key={idx}
+                position={[farm.latitude, farm.longitude]}
+                icon={greenIcon}
+              >
+                <Popup>
+                  <b>Farmer:</b> {farm.farmerName || "N/A"} <br />
+                  <b>Crop:</b> {farm.cropType || "N/A"} <br />
+                  <b>Barangay:</b> {farm.barangay || "Unknown"}
+                </Popup>
+              </Marker>
+            ))}
           </MapContainer>
         )}
       </div>

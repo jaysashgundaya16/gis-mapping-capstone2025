@@ -179,6 +179,7 @@ const Dashboard: React.FC = () => {
             </IonButton>
           </div>
 
+          {/* 🌍 Map (Full Width) */}
           <div style={{ height: "80vh", width: "100%" }}>
             <MapView
               markers={soilRecords.map((r) => ({
