@@ -27,11 +27,16 @@ const LandingPage: React.FC = () => {
     sectionRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  // ✅ Function for redirecting to Login Page
+  const handleGetStarted = () => {
+    router.push("/login", "forward");
+  };
+
   return (
     <IonPage>
       {/* ✅ Custom Header */}
       <IonHeader translucent>
-        <IonToolbar className="toolbar-custom">
+        <IonToolbar>
           <IonTitle className="toolbar-title">BUGTA</IonTitle>
           <IonButtons slot="end" className="toolbar-buttons">
             <IonButton className="hover-glow" fill="clear" onClick={() => scrollTo("home")}>
@@ -67,7 +72,9 @@ const LandingPage: React.FC = () => {
             <div className="home-text">
               <h1>SOIL NUTRIENT PROFILING</h1>
               <p>Municipal of Agriculture, Manolo Fortich Bukidnon</p>
-              <IonButton fill="solid" color="warning" onClick={() => router.push("/signup", "forward")}>
+
+              {/* ✅ Redirects to Login Page */}
+              <IonButton fill="solid" color="warning" onClick={handleGetStarted}>
                 Get Started
               </IonButton>
             </div>

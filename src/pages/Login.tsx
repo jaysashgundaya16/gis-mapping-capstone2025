@@ -39,6 +39,11 @@ const LoginPage: React.FC = () => {
     }
   }, []);
 
+  // ✅ Back button redirect
+  const handleBack = () => {
+    router.push("/gis-mapping-capstone2025", "back");
+  };
+
   // ✅ Email/Password Login
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -146,6 +151,16 @@ const LoginPage: React.FC = () => {
   return (
     <IonPage>
       <IonContent fullscreen>
+        {/* ✅ Back Button (top-left) */}
+        <IonButton
+          className="back-button"
+          fill="clear"
+          color="light"
+          onClick={handleBack}
+        >
+          ← Back
+        </IonButton>
+
         <div className="login-page-container">
           <div className="login-section">
             <div className="login-box">
@@ -206,6 +221,14 @@ const LoginPage: React.FC = () => {
                 />
                 <span>Continue with Google</span>
               </IonButton>
+
+              {/* ✅ NEW SIGNUP LINK */}
+              <div
+                className="login-signup-link"
+                onClick={() => router.push("/signup", "forward")}
+              >
+                Don’t have an Account? <strong>Register</strong>
+              </div>
 
               <IonButton
                 expand="block"

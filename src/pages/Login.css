@@ -2,9 +2,25 @@
   min-height: 100vh;
   display: flex;
   align-items: center;
-  justify-content: center;
-  background: linear-gradient(to left, #050505, #dee7fa);
-  padding: 20px;
+  justify-content: center; /* box to right */
+  background: linear-gradient(to left, #cdcdcd, #000000);
+  padding: 10px 30px;
+  
+}
+
+
+
+/* ✅ Back Button (top-left) */
+.back-button {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  font-weight: bold;
+  color: white;
+  background: transparent;
+  border: none;
+  font-size: 1rem;
+  z-index: 10;
 }
 
 .login-page-container .login-box {
@@ -20,6 +36,8 @@
   box-shadow: 0 16px 32px rgba(255, 215, 0, 0.3),
     0 8px 16px rgba(255, 255, 255, 0.2);
 }
+
+/* --- Rest unchanged --- */
 
 .login-form-title {
   font-size: 2.3rem;
@@ -138,6 +156,7 @@
 }
 
 .login-guest-btn {
+  color: #fff;
   margin-top: 12px;
   font-weight: bold;
   border-radius: 6px;
@@ -148,3 +167,18 @@
   transform: translateY(-2px);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
+
+.login-signup-link {
+  margin-top: 16px;
+  text-align: center;
+  font-size: 0.95rem;
+  color: #ffd700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.login-signup-link:hover {
+  color: #fff;
+  text-shadow: 0 0 8px #ffffff, 0 0 12px #ffd700;
+}
+

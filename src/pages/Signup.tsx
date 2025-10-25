@@ -3,7 +3,6 @@ import {
   IonButton,
   IonButtons,
   IonContent,
-  IonDatetime,
   IonHeader,
   IonInput,
   IonItem,
@@ -28,8 +27,6 @@ const SignupPage: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [dob, setDob] = useState<string | undefined>(undefined);
-  const [phone, setPhone] = useState("");
 
   // 🔑 Only this Gmail is allowed to register as Admin
   const ADMIN_EMAIL = "gundayajaysash@gmail.com";
@@ -66,8 +63,6 @@ const SignupPage: React.FC = () => {
         fullName,
         username,
         email,
-        dob,
-        phone,
         role: "admin",
         createdAt: new Date(),
       });
@@ -133,8 +128,8 @@ const SignupPage: React.FC = () => {
             background: rgba(0, 0, 0, 0.7);
             backdrop-filter: blur(8px);
             width: 100%;
-            max-width: 500px;
-            padding: 40px 32px;
+            max-width: 420px; /* 🔹 Slightly smaller box */
+            padding: 35px 28px;
           }
           .form-title {
             font-size: 2.3rem;
@@ -235,27 +230,6 @@ const SignupPage: React.FC = () => {
                   type="password"
                   value={confirmPassword}
                   onIonChange={(e) => setConfirmPassword(e.detail.value!)}
-                  required
-                />
-              </IonItem>
-
-              <IonItem className="ion-item-custom" lines="inset">
-                <IonLabel>Date of Birth</IonLabel>
-                <IonDatetime
-                  presentation="date"
-                  value={dob}
-                  onIonChange={(e) =>
-                    setDob(e.detail.value as string | undefined)
-                  }
-                />
-              </IonItem>
-
-              <IonItem className="ion-item-custom" lines="inset">
-                <IonLabel position="floating">Phone Number</IonLabel>
-                <IonInput
-                  type="tel"
-                  value={phone}
-                  onIonChange={(e) => setPhone(e.detail.value!)}
                   required
                 />
               </IonItem>
