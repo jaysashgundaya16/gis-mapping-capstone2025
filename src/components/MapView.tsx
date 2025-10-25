@@ -20,6 +20,9 @@ import lingionDataUrl from "../data/Lingi-on.geojson?url";
 import sangkananDataUrl from "../data/sangkanan.geojson?url";
 // @ts-ignore
 import tankulanDataUrl from "../data/tankulan.geojson?url";
+// @ts-ignore
+import dalirigDataUrl from "../data/dalirig.geojson?url";
+
 
 // ✅ Helper to get barangay name
 const getBarangayName = (feature: any): string => {
@@ -72,6 +75,7 @@ const MapView: React.FC<MapViewProps> = ({
   const [lingionGeoJSON, setLingionGeoJSON] = useState<any>(null);
   const [sangkananGeoJSON, setSangkananGeoJSON] = useState<any>(null);
   const [tankulanGeoJSON, setTankulanGeoJSON] = useState<any>(null);
+  const [dalirigGeoJSON, setDalirigGeoJSON] = useState<any>(null);
   const [selectedBarangay, setSelectedBarangay] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [farmMarkers, setFarmMarkers] = useState<any[]>([]);
@@ -84,16 +88,18 @@ const MapView: React.FC<MapViewProps> = ({
   useEffect(() => {
     const loadFiles = async () => {
       try {
-        const [main, lingion, sangkanan, tankulan] = await Promise.all([
+        const [main, lingion, sangkanan, tankulan, dalirig] = await Promise.all([
           fetch(geojsonData).then((res) => res.json()),
           fetch(lingionDataUrl).then((res) => res.json()),
           fetch(sangkananDataUrl).then((res) => res.json()),
           fetch(tankulanDataUrl).then((res) => res.json()),
+          fetch(dalirigDataUrl).then((res) => res.json()),
         ]);
         setGeojson(main);
         setLingionGeoJSON(lingion);
         setSangkananGeoJSON(sangkanan);
         setTankulanGeoJSON(tankulan);
+        setDalirigGeoJSON(dalirig);
       } catch (err) {
         console.error("❌ GeoJSON loading error:", err);
       } finally {
@@ -162,66 +168,79 @@ const MapView: React.FC<MapViewProps> = ({
       {/* Sidebar */}
       <div
         style={{
-          width: "280px",
-          backgroundColor: "#fff",
+          width: "245px",
+          backgroundColor: "#ffffff",
           borderRight: "1px solid #ccc",
           padding: "15px",
           overflowY: "auto",
+          boxShadow: "2px 0 5px rgba(0,0,0,0.1)",
         }}
       >
-        <div style={{ textAlign: "center", marginBottom: "10px" }}>
-            <img
-              src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Department_of_Agriculture_of_the_Philippines.svg/1200px-Department_of_Agriculture_of_the_Philippines.svg.png"
-              style={{ width: "130px", marginBottom: "5px" }}
-            />
-            <h3 style={{ fontSize: "16px", marginBottom: "10px" }}>
-              Department of Agriculture
-            </h3>
+        {/* Header with DA logo */}
+        <div style={{ textAlign: "center", marginBottom: "15px" }}>
+          <img
+            src="https://scontent.fmnl13-3.fna.fbcdn.net/v/t1.15752-9/566582844_1306498070781604_8401820456558094869_n.jpg?_nc_cat=101&ccb=1-7&_nc_sid=0024fc&_nc_eui2=AeFF06cdkjGbhGXdlRgLuYJgBU5WPDAv4eIFTlY8MC_h4m9B-H74BDQVv45n8eFSHHVeF6CyO92_PgK2-mJFVk0l&_nc_ohc=adtClkziJnwQ7kNvwHwMp6J&_nc_oc=AdkM68JhRwrLBRBr6Go8-9JIzxD-100p_qaGi0-niMiASr8bLCRPw7XGQPv8boIsYho&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&_nc_ht=scontent.fmnl13-3.fna&oh=03_Q7cD3gFHO-zKKdztUc6lYH5TX_TDmQvkiExR1OFBx80gETYBQg&oe=6923B7C1"
+            alt="Department of Agriculture Logo"
+            style={{ width: "147px", marginBottom: "5px" }}
+          />
+          <h3 style={{ fontSize: "14px", marginBottom: "10px" }}>
+            Department of Agriculture
+          </h3>
+        </div>
+
+        {/* Dropdowns */}
+        <div
+          style={{
+            background: "#f8f8f8",
+            borderRadius: "8px",
+            padding: "10px",
+            boxShadow: "inset 0 0 4px rgba(0,0,0,0.05)",
+          }}
+        >
+          <div style={{ marginBottom: "10px" }}>
+            <label style={{ fontWeight: "bold" }}>Region:</label>
+            <select style={{ width: "100%", padding: "6px" }} disabled>
+              <option>Region X</option>
+            </select>
           </div>
 
+          <div style={{ marginBottom: "10px" }}>
+            <label style={{ fontWeight: "bold" }}>Province:</label>
+            <select style={{ width: "100%", padding: "6px" }} disabled>
+              <option>Bukidnon</option>
+            </select>
+          </div>
 
-        <div style={{ marginBottom: "10px" }}>
-          <label style={{ fontWeight: "bold" }}>Choose Map:</label>
-          <select style={{ width: "100%", padding: "6px", marginTop: "4px" }}>
-            <option>Crop Suitability</option>
-          </select>
-        </div>
+          <div style={{ marginBottom: "10px" }}>
+            <label style={{ fontWeight: "bold" }}>Municipality:</label>
+            <select style={{ width: "100%", padding: "6px" }} disabled>
+              <option>Manolo Fortich</option>
+            </select>
+          </div>
+          
 
-        <div style={{ marginBottom: "10px" }}>
-          <label style={{ fontWeight: "bold" }}>Region:</label>
-          <select style={{ width: "100%", padding: "6px" }} disabled>
-            <option>Region X</option>
-          </select>
-        </div>
+          <div>
+            <label style={{ fontWeight: "bold" }}>Barangay:</label>
+            <select
+              onChange={handleBarangaySelect}
+              value={selectedBarangay}
+              style={{ width: "100%", padding: "6px" }}
+            >
+              <option value="">Select Barangay</option>
+              {barangays.map((bgy) => (
+                <option key={bgy} value={bgy}>
+                  {bgy}
+                </option>
+              ))}
+            </select>
+          </div>
 
-        <div style={{ marginBottom: "10px" }}>
-          <label style={{ fontWeight: "bold" }}>Province:</label>
-          <select style={{ width: "100%", padding: "6px" }} disabled>
-            <option>Bukidnon</option>
-          </select>
-        </div>
-
-        <div style={{ marginBottom: "10px" }}>
-          <label style={{ fontWeight: "bold" }}>Municipality:</label>
-          <select style={{ width: "100%", padding: "6px" }} disabled>
-            <option>Manolo Fortich</option>
-          </select>
-        </div>
-
-        <div>
-          <label style={{ fontWeight: "bold" }}>Barangay:</label>
-          <select
-            onChange={handleBarangaySelect}
-            value={selectedBarangay}
-            style={{ width: "100%", padding: "6px" }}
-          >
-            <option value="">Select Barangay</option>
-            {barangays.map((bgy) => (
-              <option key={bgy} value={bgy}>
-                {bgy}
-              </option>
-            ))}
-          </select>
+          <div style={{ marginBottom: "16px" }}>
+            <label style={{ fontWeight: "bold" }}>Choose Crop:</label>
+            <select style={{ width: "100%", padding: "6px", marginTop: "4px" }}>
+              <option>Corn</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -269,13 +288,16 @@ const MapView: React.FC<MapViewProps> = ({
 
             {/* Other barangay GeoJSONs */}
             {lingionGeoJSON && (
-              <GeoJSON data={lingionGeoJSON} style={{ color: "black", weight: 2 }} />
+              <GeoJSON data={lingionGeoJSON} style={{ color: "green", weight: 2 }} />
             )}
             {sangkananGeoJSON && (
-              <GeoJSON data={sangkananGeoJSON} style={{ color: "orange", weight: 2 }} />
+              <GeoJSON data={sangkananGeoJSON} style={{ color: "green", weight: 2 }} />
             )}
             {tankulanGeoJSON && (
-              <GeoJSON data={tankulanGeoJSON} style={{ color: "blue", weight: 2 }} />
+              <GeoJSON data={tankulanGeoJSON} style={{ color: "green", weight: 2 }} />
+            )}
+            {dalirigGeoJSON && (
+              <GeoJSON data={dalirigGeoJSON} style={{ color: "green", weight: 2 }} />
             )}
 
             {/* Farm Markers */}
@@ -300,3 +322,5 @@ const MapView: React.FC<MapViewProps> = ({
 };
 
 export default MapView;
+
+

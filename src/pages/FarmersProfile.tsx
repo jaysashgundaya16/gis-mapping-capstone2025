@@ -257,7 +257,7 @@ const FarmersProfile: React.FC = () => {
                 <IonIcon icon={menuOutline} />
               </IonMenuButton>
             </IonButtons>
-            <IonTitle style={{ color: "#07371A" }}>
+            <IonTitle style={{ color: "#000000ff" }}>
               Manolo Fortich Farmer's Information
             </IonTitle>
           </IonToolbar>
@@ -272,7 +272,7 @@ const FarmersProfile: React.FC = () => {
 
           {!loading && (
             <>
-              <div style={{ backgroundColor: "#07371A", color: "white", padding: "15px" }}>
+              <div style={{ backgroundColor: "#ffffffff", color: "black", padding: "15px" }}>
                 <IonGrid>
                   <IonRow>
                     <IonCol size="4">

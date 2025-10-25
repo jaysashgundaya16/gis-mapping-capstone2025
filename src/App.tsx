@@ -29,7 +29,7 @@ import Login from "./pages/Login";
 import EditProfile from "./pages/EditProfile";
 import FarmersProfile from "./pages/FarmersProfile";
 import GuestDashboard from "./pages/GuestDashboard";
-import SoilDataDashboard from "./pages/SoilDataDashboard";
+
 
 setupIonicReact();
 
@@ -70,7 +70,7 @@ const App: React.FC = () => (
         <Route exact path="/signup" component={Signup} />
         <Route exact path="/login" component={Login} />
         <Route exact path="/guest-dashboard" component={GuestDashboard} />
-        <Route path="/soil-data-dashboard" component={SoilDataDashboard} exact />
+        
 
 
         {/* ✅ Protected routes */}

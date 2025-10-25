@@ -1,46 +1,53 @@
 .dashboard-bg {
-  --background: linear-gradient(135deg, #0a0a0a, #017a22);
+  background: linear-gradient(135deg, #f8f8f8, #ffffff);
   padding: 0;
   margin: 0;
 }
 
 .header-gradient {
-  --background: linear-gradient(90deg, #060606, #026b1e);
-  color: white;
+  background: "black";
+  color: rgb(4, 4, 4);
   font-weight: bold;
 }
 
 .dashboard-center-title {
-  font-size: 1.4rem;
+  font-size: 1.3rem;
   font-weight: 600;
-  color: white;
+  color: rgb(2, 2, 2);
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%; /* make sure parent has a fixed height */
 }
 
+
 .map-header-bar {
-  background: linear-gradient(90deg, #060606, #014b1a);
-  color: white;
-  padding: 12px 16px;
+  background: "transparent";
+  color: rgb(3, 3, 3);
+  font-size: 1.3rem;
   font-weight: bold;
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
+.soil-data-btn:hover {
+  background: rgba(10, 38, 4, 0.25);
+  transform: scale(0.90);
+}
 
 .soil-data-btn {
-  color: #fbfcfb !important;
+  color: #040404 !important;
   font-weight: 700;
   letter-spacing: 0.5px;
-  background: rgba(15, 15, 15, 0.15);
+
   border-radius: 10px;
   padding: 6px 14px;
   transition: background 0.3s ease, transform 0.2s ease;
 }
-.soil-data-btn:hover {
-  background: rgba(10, 38, 4, 0.25);
-  transform: scale(1.05);
-}
+
 .soil-data-btn.active {
-  background: rgba(1, 115, 1, 0.4);
+  background: rgb(255, 255, 255);
 }
 
 /* 🖤 Black floating soil data form */
@@ -48,8 +55,8 @@
   position: absolute;
   top: 70px;
   right: 25px;
-  background: #000;
-  color: white;
+  background: #fcfcfc;
+  color: rgb(0, 0, 0);
   padding: 16px;
   border-radius: 12px;
   box-shadow: 0 3px 15px rgba(0, 0, 0, 0.8);
@@ -86,7 +93,7 @@
   font-weight: 600;
   margin-top: 8px;
   display: block;
-  color: #ddd;
+  color: #ffffff;
 }
 
 .soil-form-body input,
@@ -95,8 +102,8 @@
   padding: 6px 8px;
   margin-top: 4px;
   border-radius: 6px;
-  border: 1px solid #555;
-  background: #111;
+  border: 1px solid #ffffff;
+  background: #ffffff;
   color: white;
   outline: none;
 }
@@ -107,19 +114,19 @@
   border-bottom: 1px solid #dcdcdc;
 }
 
-ion-item {
+.ion-item {
   --background: #ffffff;
   border-radius: 8px;
   --inner-padding-end: 8px;
   --inner-padding-start: 8px;
 }
 
-ion-label {
+.ion-label {
   font-weight: 600;
   font-size: 13px;
 }
 
-ion-select {
+.ion-select {
   font-size: 14px;
 }
 

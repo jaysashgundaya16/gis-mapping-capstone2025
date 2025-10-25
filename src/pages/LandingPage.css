@@ -1,16 +1,23 @@
+:root {
+  --header-bg-color: #1e2a38; /* 💡 Change this value to change header color */
+}
+
 /* Toolbar */
 .toolbar-custom {
-  background: black;
+  background-color: var(--header-bg-color);
   box-shadow: none;
+  transition: background-color 0.4s ease;
 }
 .toolbar-title {
   color: white;
+  font-weight: 700;
+  letter-spacing: 1px;
 }
 .toolbar-buttons {
   gap: 27px;
 }
 
-/* Glow Effects */
+/* Glow hover */
 .hover-glow span {
   transition: all 0.4s ease;
   display: inline-block;
@@ -23,6 +30,8 @@
 .hover-glow:hover {
   transform: translateY(-3px);
 }
+
+/* Glow Boxes */
 .glow-box {
   transition: all 0.4s ease;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
@@ -54,25 +63,25 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(to left, #dee7faff, #050505ff);
+  background: linear-gradient(to left, #dee7fa, #050505);
   padding: 60px 20px;
   position: relative;
   overflow: hidden;
 }
 
-/* ✅ Center Logo Watermark */
+/* Logo Watermark */
 .logo-background {
   position: absolute;
   top: 46%;
   left: 30%;
   transform: translate(-50%, -50%);
-  opacity: 0.1;              /* Faint watermark effect */
+  opacity: 0.1;
   z-index: 1;
-  width: 500px;              /* Adjust size */
+  width: 500px;
   height: 500px;
   background: url("/logo.png") no-repeat center center;
-  background-size: contain;  /* Make sure it scales properly */
-  pointer-events: none;  
+  background-size: contain;
+  pointer-events: none;
 }
 .logo-background img {
   width: 500px;
@@ -135,7 +144,7 @@
   line-height: 1.6;
 }
 
-/* Services */
+/* Services Section */
 .services-container {
   max-width: 1000px;
   margin: 0 auto;

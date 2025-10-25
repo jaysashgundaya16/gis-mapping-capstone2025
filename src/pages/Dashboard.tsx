@@ -152,20 +152,22 @@ const Dashboard: React.FC = () => {
       <SideMenu />
       <IonPage id="main-content">
         <IonHeader translucent>
+          <IonToolbar>
           <IonToolbar className="header-gradient">
             <IonButtons slot="start">
               <IonMenuButton autoHide={false}>
                 <IonIcon icon={menuOutline} />
               </IonMenuButton>
             </IonButtons>
+            
             <IonTitle className="dashboard-center-title">
-              🌾 Soil Nutrient Crop Profiling (Admin)
+              🌾 Soil Nutrient Corn Profiling
             </IonTitle>
+            </IonToolbar>
           </IonToolbar>
         </IonHeader>
-
-        <IonContent fullscreen className="dashboard-bg">
-          <div className="map-header-bar">
+        <IonContent fullscreen>
+          <div className="map-header-bar" color= "transparent">
             <span>
               <IonIcon icon={mapOutline} /> Map View
             </span>
@@ -174,7 +176,7 @@ const Dashboard: React.FC = () => {
               className={`soil-data-btn ${showForm ? "active" : ""}`}
               onClick={() => setShowForm(!showForm)}
             >
-              🧪 <strong>Soil Data Management</strong>
+               <strong>Soil Data Management</strong>
               <IonIcon icon={chevronDownOutline} slot="end" />
             </IonButton>
           </div>

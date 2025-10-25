@@ -1,21 +1,21 @@
 .dashboard-bg {
-  --background: linear-gradient(135deg, #0a0a0a, #017a22);
+  --background: linear-gradient(135deg, #ffffff, #ffffff);
   color: white;
 }
 
 .header-gradient {
-  --background: linear-gradient(90deg, #060606, #026b1e);
-  color: white;
+  --background: linear-gradient(90deg, #ffffff, #ffffff);
+  color: rgb(0, 0, 0);
 }
 
 h2 {
-  color: #fefefe;
+  color: #000000;
   margin-bottom: 12px;
 }
 
 IonCard {
   background: rgba(255, 255, 255, 0.1) !important;
-  color: white;
+  color: rgb(0, 0, 0);
 }
 
 IonItem {
@@ -39,18 +39,12 @@ IonButton[color="danger"] {
   --color: white;
 }
 
-.dashboard-bg {
-  --background: linear-gradient(135deg, #0a0a0a, #017a22);
-  color: rgba(255, 255, 255, 0.9);
-}
 
-.header-gradient {
-  --background: linear-gradient(90deg, #060606, #026b1e);
-  color: white;
-}
+
+
 
 .dashboard-card {
-  background: rgba(0, 0, 0, 0.35);
+  background: rgb(255, 255, 255);
   color: rgba(255, 255, 255, 0.9);
   border-radius: 12px;
   padding: 12px;

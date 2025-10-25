@@ -64,7 +64,7 @@ const EditProfile: React.FC = () => {
           const data = docSnap.data();
           setName(data.name || "");
           setPhone(data.phone || "");
-          setPhotoUrl(data.photoUrl || "https://i.pravatar.cc/300");
+          setPhotoUrl(data.photoUrl || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQFvWEC5rEnwVLeNkBbKCJTC4qZCV0qE4qc-g&s");
         }
       }
     });
@@ -203,7 +203,7 @@ const EditProfile: React.FC = () => {
           </IonToolbar>
         </IonHeader>
 
-        <IonContent fullscreen className="dashboard-bg ion-padding">
+        <IonContent fullscreen >
           <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
             {/* Profile Card */}
             <IonCard
@@ -211,8 +211,8 @@ const EditProfile: React.FC = () => {
                 flex: "1 1 250px",
                 maxWidth: "300px",
                 textAlign: "center",
-                background: "rgba(0, 128, 0, 0.3)",
-                color: "rgba(255, 255, 255, 0.9)",
+                background: "rgba(255, 255, 255, 1)",
+                color: "rgba(0, 0, 0, 0.9)",
                 borderRadius: "12px",
                 padding: "10px",
               }}
@@ -245,14 +245,14 @@ const EditProfile: React.FC = () => {
               style={{
                 flex: "2 1 500px",
                 minWidth: "300px",
-                background: "rgba(0, 128, 0, 0.3)",
+                background: "rgba(255, 255, 255, 1)",
                 borderRadius: "12px",
                 padding: "20px",
-                color: "rgba(255, 255, 255, 0.9)",
+                color: "rgba(0, 0, 0, 0.9)",
               }}
             >
-              <h2>User Information</h2>
-              <IonItem style={{ background: "rgba(255,255,255,0.05)", marginBottom: "10px", borderRadius: "8px" }}>
+              <h2 color= "black">User Information</h2>
+              <IonItem style={{ background: "rgba(0, 0, 0, 0.05)", marginBottom: "10px", borderRadius: "8px", color: "black" }}>
                 <IonLabel position="stacked">Name</IonLabel>
                 <IonInput value={name} onIonChange={(e) => setName(e.detail.value!)} />
               </IonItem>

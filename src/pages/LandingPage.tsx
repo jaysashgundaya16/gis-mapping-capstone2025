@@ -13,7 +13,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/autoplay";
 import { Autoplay } from "swiper/modules";
-import "./LandingPage.css"; // ✅ Import CSS file
+import "./LandingPage.css";
 
 const LandingPage: React.FC = () => {
   const router = useIonRouter();
@@ -29,6 +29,7 @@ const LandingPage: React.FC = () => {
 
   return (
     <IonPage>
+      {/* ✅ Custom Header */}
       <IonHeader translucent>
         <IonToolbar className="toolbar-custom">
           <IonTitle className="toolbar-title">BUGTA</IonTitle>
@@ -56,10 +57,10 @@ const LandingPage: React.FC = () => {
       </IonHeader>
 
       <IonContent fullscreen>
-        {/* ✅ Home Section with Logo */}
+        {/* ✅ Home Section */}
         <div ref={homeRef} className="section-container">
           <div className="logo-background">
-            <img src="/assets/logo.png" alt="" />
+            <img src="/assets/logo.png" alt="Logo" />
           </div>
 
           <div className="home-content">

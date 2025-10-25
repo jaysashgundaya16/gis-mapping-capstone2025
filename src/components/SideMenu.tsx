@@ -83,10 +83,10 @@ const SideMenu: React.FC = () => {
   };
 
   return (
-    <IonMenu side="start" contentId="main-content" swipeGesture={false}>
+    <IonMenu side="start" color= "black" contentId="main-content" swipeGesture={false}>
       <IonHeader>
-        <IonToolbar color="dark">
-          <IonTitle>Menu</IonTitle>
+        <IonToolbar>
+          <IonTitle>Menu</IonTitle> 
         </IonToolbar>
       </IonHeader>
 
@@ -103,7 +103,7 @@ const SideMenu: React.FC = () => {
               }}
             >
               <IonIcon icon={mapOutline} slot="start" />
-              <IonLabel>Map</IonLabel>
+              <IonLabel color= "black">Map</IonLabel>
             </IonItem>
 
             {/* ✅ Edit Profile */}
@@ -115,14 +115,8 @@ const SideMenu: React.FC = () => {
             {/* ✅ Farmers Profile */}
             <IonItem button onClick={() => router.push("/farmers-profile", "forward")}>
               <IonIcon icon={peopleCircleOutline} slot="start" />
-              <IonLabel>Farmers Profile</IonLabel>
-            </IonItem>
-
-            {/* ✅ Soil Data Dashboard */}
-            <IonItem button onClick={() => router.push("/soil-data-dashboard", "forward")}>
-              <IonIcon icon={leafOutline} slot="start" />
-              <IonLabel>Soil Data Dashboard</IonLabel>
-            </IonItem>
+              <IonLabel>Farmer's Profile</IonLabel>
+            </IonItem>         
           </IonMenuToggle>
         </IonList>
       </IonContent>

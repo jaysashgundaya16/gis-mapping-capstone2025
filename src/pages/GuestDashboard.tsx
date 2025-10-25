@@ -87,9 +87,9 @@ const GuestDashboard: React.FC = () => {
         >
           <div
             style={{
-              background: "linear-gradient(90deg, #060606, #014b1a)",
+              background: "linear-gradient(90deg, #ffffffff, #ffffffff)",
               color: "white",
-              padding: "12px 16px",
+              
               fontWeight: "bold",
               display: "flex",
               alignItems: "center",
