@@ -403,25 +403,25 @@ const MapView: React.FC<MapViewProps> = ({
               <GeoJSON data={dicklumGeoJSON} style={{ color: "transparent", weight: 2 }} />
             )}
             {santoNinoGeoJSON && (
-              <GeoJSON data={santoNinoGeoJSON} style={{ color: "Grey", weight: 2 }} />
+              <GeoJSON data={santoNinoGeoJSON} style={{ color: "transparent", weight: 2 }} />
             )}
             {lunocanGeoJSON && (
-              <GeoJSON data={lunocanGeoJSON} style={{ color: "Grey", weight: 2 }} />
+              <GeoJSON data={lunocanGeoJSON} style={{ color: "transparent", weight: 2 }} />
             )}
             {mantibugaoGeoJSON && (
-              <GeoJSON data={mantibugaoGeoJSON} style={{ color: "Grey", weight: 2 }} />
+              <GeoJSON data={mantibugaoGeoJSON} style={{ color: "transparent", weight: 2 }} />
             )}
             {minsuroGeoJSON && (
-              <GeoJSON data={minsuroGeoJSON} style={{ color: "Grey", weight: 2 }} />
+              <GeoJSON data={minsuroGeoJSON} style={{ color: "transparent", weight: 2 }} />
             )}
             {damilagGeoJSON && (
-              <GeoJSON data={damilagGeoJSON} style={{ color: "Grey", weight: 2 }} />
+              <GeoJSON data={damilagGeoJSON} style={{ color: "transparent", weight: 2 }} />
             )}
             {sanMiguelGeoJSON && (
-              <GeoJSON data={sanMiguelGeoJSON} style={{ color: "Grey", weight: 2 }} />
+              <GeoJSON data={sanMiguelGeoJSON} style={{ color: "transparent", weight: 2 }} />
             )}
             {alaeGeoJSON && (
-              <GeoJSON data={alaeGeoJSON} style={{ color: "Grey", weight: 2 }} />
+              <GeoJSON data={alaeGeoJSON} style={{ color: "transparent", weight: 2 }} />
             )}
             {mambatanganGeoJSON && (
               <GeoJSON data={mambatanganGeoJSON} style={{ color: "Grey", weight: 2 }} />
