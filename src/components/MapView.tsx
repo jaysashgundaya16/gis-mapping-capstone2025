@@ -22,15 +22,36 @@ import sangkananDataUrl from "../data/sangkanan.geojson?url";
 import tankulanDataUrl from "../data/tankulan.geojson?url";
 // @ts-ignore
 import dalirigDataUrl from "../data/dalirig.geojson?url";
-
-
+// @ts-ignore
+import dicklumDataUrl from "../data/dicklum.geojson?url";
+// @ts-ignore
+import santoNinoDataUrl from "../data/santoNino.geojson?url";
+// @ts-ignore
+import lunocanDataUrl from "../data/lunocan.geojson?url";
+// @ts-ignore
+import mantibugaoDataUrl from "../data/mantibugao.geojson?url";
+// @ts-ignore
+import minsuroDataUrl from "../data/minsuro.geojson?url";
+// @ts-ignore
+import damilagDataUrl from "../data/damilag.geojson?url";
+// @ts-ignore
+import sanMiguelDataUrl from "../data/sanMiguel.geojson?url";
+// @ts-ignore
+import alaeDataUrl from "../data/alae.geojson?url";
 // ✅ Helper to get barangay name
 const getBarangayName = (feature: any): string => {
   const props = feature.properties || {};
   return props.Barangay || Object.keys(props)[0] || "Unknown";
 };
 
-// ✅ Custom green marker
+// ✅ Custom icons (color-coded per crop)
+const cornIcon = new L.Icon({
+  iconUrl: "https://cdn-icons-png.flaticon.com/512/854/854878.png",
+  iconSize: [30, 30],
+  iconAnchor: [15, 30],
+  popupAnchor: [0, -25],
+});
+
 const greenIcon = new L.Icon({
   iconUrl:
     "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png",
@@ -76,6 +97,15 @@ const MapView: React.FC<MapViewProps> = ({
   const [sangkananGeoJSON, setSangkananGeoJSON] = useState<any>(null);
   const [tankulanGeoJSON, setTankulanGeoJSON] = useState<any>(null);
   const [dalirigGeoJSON, setDalirigGeoJSON] = useState<any>(null);
+  const [dicklumGeoJSON, setDicklumGeoJSON] = useState<any>(null);
+  const [santoNinoGeoJSON, setSantoNinoGeoJSON] = useState<any>(null);
+  const [lunocanGeoJSON, setLunocanGeoJSON] = useState<any>(null);
+  const [mantibugaoGeoJSON, setMantibugaoGeoJSON] = useState<any>(null);
+  const [minsuroGeoJSON, setMinsuroGeoJSON] = useState<any>(null);
+  const [damilagGeoJSON, setDamilagGeoJSON] = useState<any>(null);
+  const [sanMiguelGeoJSON, setSanMiguelGeoJSON] = useState<any>(null);
+  const [alaeGeoJSON, setAlaeGeoJSON] = useState<any>(null);
+
   const [selectedBarangay, setSelectedBarangay] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [farmMarkers, setFarmMarkers] = useState<any[]>([]);
@@ -88,18 +118,38 @@ const MapView: React.FC<MapViewProps> = ({
   useEffect(() => {
     const loadFiles = async () => {
       try {
-        const [main, lingion, sangkanan, tankulan, dalirig] = await Promise.all([
+        const [main, lingion, sangkanan, tankulan, dalirig, dicklum, santoNino, lunocan, mantibugao, minsuro, damilag, sanMiguel, alae] = await Promise.all([
           fetch(geojsonData).then((res) => res.json()),
           fetch(lingionDataUrl).then((res) => res.json()),
           fetch(sangkananDataUrl).then((res) => res.json()),
           fetch(tankulanDataUrl).then((res) => res.json()),
           fetch(dalirigDataUrl).then((res) => res.json()),
+          fetch(dicklumDataUrl).then((res) => res.json()),
+          fetch(santoNinoDataUrl).then((res) => res.json()),
+          fetch(lunocanDataUrl).then((res) => res.json()),
+          fetch(mantibugaoDataUrl).then((res) => res.json()),
+          fetch(minsuroDataUrl).then((res) => res.json()),
+          fetch(damilagDataUrl).then((res) => res.json()),
+          fetch(sanMiguelDataUrl).then((res) => res.json()),
+          fetch(alaeDataUrl).then((res) => res.json()),
+          
+
+          
+
         ]);
         setGeojson(main);
         setLingionGeoJSON(lingion);
         setSangkananGeoJSON(sangkanan);
         setTankulanGeoJSON(tankulan);
         setDalirigGeoJSON(dalirig);
+        setDicklumGeoJSON(dicklum);
+        setSantoNinoGeoJSON(santoNino);
+        setLunocanGeoJSON(lunocan);
+        setMantibugaoGeoJSON(mantibugao);
+        setMinsuroGeoJSON(minsuro);
+        setDamilagGeoJSON(damilag);
+        setSanMiguelGeoJSON(sanMiguel);
+        setAlaeGeoJSON(alae);
       } catch (err) {
         console.error("❌ GeoJSON loading error:", err);
       } finally {
@@ -121,18 +171,64 @@ const MapView: React.FC<MapViewProps> = ({
     return () => unsub();
   }, []);
 
+  // ✅ Temporary farmer data (for demo)
+  const tempFarmers = [
+    {
+      name: "Emma M. Racines",
+      address: "Gaboc, Lingi-on, Manolo Fortich, Bukidnon",
+      crop: "Corn",
+      pH: 6.0,
+      N: "L",
+      P: "M",
+      K: "L",
+      lat: 8.41434677827997,
+      lng: 124.87456306604953,
+    },
+    {
+      name: "Eufracia Lague",
+      address: "Zone-2 Lingi-on, Manolo Fortich, Bukidnon",
+      crop: "Corn",
+      pH: 5.6,
+      N: "L",
+      P: "L",
+      K: "L",
+      lat: 8.4172,
+      lng: 124.8778,
+    },
+    {
+      name: "Kyle Tupac",
+      address: "Zone-2 Lingi-on, Manolo Fortich, Bukidnon",
+      crop: "Corn",
+      pH: 5.8,
+      N: "L",
+      P: "L",
+      K: "M",
+      lat: 8.4201,
+      lng: 124.8802,
+    },
+    {
+      name: "Rosalita Dosayco",
+      address: "Zone-2 Lingi-on, Manolo Fortich, Bukidnon",
+      crop: "Corn",
+      pH: 5.4,
+      N: "L",
+      P: "M",
+      K: "H",
+      lat: 8.4223,
+      lng: 124.8839,
+    },
+  ];
+
   // ✅ Barangay select handler
   const handleBarangaySelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
     if (selectedBarangay === value || value === "") {
-      // Deselect → Zoom out
       setSelectedBarangay("");
       setShowBorders(false);
       if (mapRef.current) {
         mapRef.current.setView(defaultCenter, defaultZoom);
       }
     } else {
-      // Select → Zoom in
       setSelectedBarangay(value);
       setShowBorders(true);
     }
@@ -217,7 +313,6 @@ const MapView: React.FC<MapViewProps> = ({
               <option>Manolo Fortich</option>
             </select>
           </div>
-          
 
           <div>
             <label style={{ fontWeight: "bold" }}>Barangay:</label>
@@ -288,19 +383,61 @@ const MapView: React.FC<MapViewProps> = ({
 
             {/* Other barangay GeoJSONs */}
             {lingionGeoJSON && (
-              <GeoJSON data={lingionGeoJSON} style={{ color: "green", weight: 2 }} />
+              <GeoJSON data={lingionGeoJSON} style={{ color: "Transparent", weight: 2 }} />
             )}
             {sangkananGeoJSON && (
-              <GeoJSON data={sangkananGeoJSON} style={{ color: "green", weight: 2 }} />
+              <GeoJSON data={sangkananGeoJSON} style={{ color: "Transparent", weight: 2 }} />
             )}
             {tankulanGeoJSON && (
-              <GeoJSON data={tankulanGeoJSON} style={{ color: "green", weight: 2 }} />
+              <GeoJSON data={tankulanGeoJSON} style={{ color: "Transparent", weight: 2 }} />
             )}
             {dalirigGeoJSON && (
-              <GeoJSON data={dalirigGeoJSON} style={{ color: "green", weight: 2 }} />
+              <GeoJSON data={dalirigGeoJSON} style={{ color: "Transparent", weight: 2 }} />
             )}
+             {dicklumGeoJSON && (
+              <GeoJSON data={dicklumGeoJSON} style={{ color: "transparent", weight: 2 }} />
+            )}
+            {santoNinoGeoJSON && (
+              <GeoJSON data={santoNinoGeoJSON} style={{ color: "Grey", weight: 2 }} />
+            )}
+            {lunocanGeoJSON && (
+              <GeoJSON data={lunocanGeoJSON} style={{ color: "Grey", weight: 2 }} />
+            )}
+            {mantibugaoGeoJSON && (
+              <GeoJSON data={mantibugaoGeoJSON} style={{ color: "Grey", weight: 2 }} />
+            )}
+            {minsuroGeoJSON && (
+              <GeoJSON data={minsuroGeoJSON} style={{ color: "Grey", weight: 2 }} />
+            )}
+            {damilagGeoJSON && (
+              <GeoJSON data={damilagGeoJSON} style={{ color: "Grey", weight: 2 }} />
+            )}
+            {sanMiguelGeoJSON && (
+              <GeoJSON data={sanMiguelGeoJSON} style={{ color: "Grey", weight: 2 }} />
+            )}
+            {alaeGeoJSON && (
+              <GeoJSON data={alaeGeoJSON} style={{ color: "Grey", weight: 2 }} />
+            )}
+            
 
-            {/* Farm Markers */}
+            {/* 🔹 Temporary demo farmer markers */}
+            {tempFarmers.map((farmer, idx) => (
+              <Marker key={idx} position={[farmer.lat, farmer.lng]} icon={cornIcon}>
+                <Popup>
+                  <b>{farmer.name}</b>
+                  <br />
+                  📍 <b>Address:</b> {farmer.address}
+                  <br />
+                  🌽 <b>Crop:</b> {farmer.crop}
+                  <br />
+                  🌡 <b>pH:</b> {farmer.pH}
+                  <br />
+                  🧪 <b>N:</b> {farmer.N} | <b>P:</b> {farmer.P} | <b>K:</b> {farmer.K}
+                </Popup>
+              </Marker>
+            ))}
+
+            {/* Farm markers from Firestore */}
             {farmMarkers.map((farm, idx) => (
               <Marker
                 key={idx}
@@ -322,5 +459,3 @@ const MapView: React.FC<MapViewProps> = ({
 };
 
 export default MapView;
-
-
