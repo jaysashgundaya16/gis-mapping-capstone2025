@@ -277,7 +277,7 @@ const MapView: React.FC<MapViewProps> = ({
   useEffect(() => {
     if (mapRef.current && filteredGeoJSON && filteredGeoJSON.features.length > 0) {
       const layer = L.geoJSON(filteredGeoJSON);
-      mapRef.current.fitBounds(layer.getBounds(), { padding: [20, 20], maxZoom: 15 });
+      mapRef.current.fitBounds(layer.getBounds(), { padding: [20, 20], maxZoom: 13 });
     }
   }, [filteredGeoJSON]);
 
