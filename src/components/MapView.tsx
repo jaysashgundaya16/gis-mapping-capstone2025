@@ -46,6 +46,8 @@ import agusanCanyonDataUrl from "../data/agusanCanyon.geojson?url";
 import mampayagDataUrl from "../data/mampayag.geojson?url";
 // @ts-ignore
 import lindabanDataUrl from "../data/lindaban.geojson?url";
+// @ts-ignore
+import kalugmananDataUrl from "../data/kalugmanan.geojson?url";
 
 
 
@@ -120,6 +122,7 @@ const MapView: React.FC<MapViewProps> = ({
   const [agusanCanyonGeoJSON, setAgusanCanyonGeoJSON] = useState<any>(null);
   const [mampayagGeoJSON, setMampayagGeoJSON] = useState<any>(null);
   const [lindabanGeoJSON, setLindabanGeoJSON] = useState<any>(null);
+  const [kalugmananGeoJSON, setKalugmananGeoJSON] = useState<any>(null);
 
   const [selectedBarangay, setSelectedBarangay] = useState<string>("");
   const [loading, setLoading] = useState(true);
@@ -133,7 +136,7 @@ const MapView: React.FC<MapViewProps> = ({
   useEffect(() => {
     const loadFiles = async () => {
       try {
-        const [main, lingion, sangkanan, tankulan, dalirig, dicklum, santoNino, lunocan, mantibugao, minsuro, damilag, sanMiguel, alae, mambatangan, agusanCanyon, mampayag, lindaban] = await Promise.all([
+        const [main, lingion, sangkanan, tankulan, dalirig, dicklum, santoNino, lunocan, mantibugao, minsuro, damilag, sanMiguel, alae, mambatangan, agusanCanyon, mampayag, lindaban, kalugmanan] = await Promise.all([
           fetch(geojsonData).then((res) => res.json()),
           fetch(lingionDataUrl).then((res) => res.json()),
           fetch(sangkananDataUrl).then((res) => res.json()),
@@ -151,6 +154,7 @@ const MapView: React.FC<MapViewProps> = ({
           fetch(agusanCanyonDataUrl).then((res) => res.json()),
           fetch(mampayagDataUrl).then((res) => res.json()),
           fetch(lindabanDataUrl).then((res) => res.json()),
+          fetch(kalugmananDataUrl).then((res) => res.json()),
           
 
           
@@ -173,6 +177,7 @@ const MapView: React.FC<MapViewProps> = ({
         setAgusanCanyonGeoJSON(agusanCanyon);
         setMampayagGeoJSON(mampayag);
         setLindabanGeoJSON(lindaban);
+        setKalugmananGeoJSON(kalugmanan);
       } catch (err) {
         console.error("❌ GeoJSON loading error:", err);
       } finally {
@@ -451,7 +456,10 @@ const MapView: React.FC<MapViewProps> = ({
               <GeoJSON data={mampayagGeoJSON} style={{ color: "Transparent", weight: 2 }} />
             )}
             {lindabanGeoJSON && (
-              <GeoJSON data={lindabanGeoJSON} style={{ color: "Grey", weight: 2 }} />
+              <GeoJSON data={lindabanGeoJSON} style={{ color: "Transparent", weight: 2 }} />
+            )}
+            {kalugmananGeoJSON && (
+              <GeoJSON data={kalugmananGeoJSON} style={{ color: "Grey", weight: 2 }} />
             )}
             
 
