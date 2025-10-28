@@ -459,7 +459,7 @@ const MapView: React.FC<MapViewProps> = ({
               <GeoJSON data={lindabanGeoJSON} style={{ color: "Transparent", weight: 2 }} />
             )}
             {kalugmananGeoJSON && (
-              <GeoJSON data={kalugmananGeoJSON} style={{ color: "Grey", weight: 2 }} />
+              <GeoJSON data={kalugmananGeoJSON} style={{ color: "Black", weight: 2 }} />
             )}
             
 
