@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import MapView from "../components/MapView";
 import {
   IonPage,
@@ -24,6 +24,9 @@ import {
   closeOutline,
   chevronDownOutline,
   mapOutline,
+  searchOutline,
+  navigateOutline,
+  shareOutline,
 } from "ionicons/icons";
 import SideMenu from "../components/SideMenu";
 import "./Dashboard.css";
@@ -38,6 +41,8 @@ import {
   getDoc,
 } from "firebase/firestore";
 import { useIonRouter, useIonViewWillEnter } from "@ionic/react";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 
 type SoilRecord = {
   id?: string;
@@ -54,6 +59,7 @@ type SoilRecord = {
 
 const Dashboard: React.FC = () => {
   const router = useIonRouter();
+  const mapRef = useRef<any>(null);
   const [showForm, setShowForm] = useState(false);
   const [soilRecords, setSoilRecords] = useState<SoilRecord[]>([]);
   const [cropName, setCropName] = useState("");
@@ -65,6 +71,12 @@ const Dashboard: React.FC = () => {
   const [phVal, setPhVal] = useState<number | undefined>(6.5);
   const [moisture, setMoisture] = useState<number | undefined>(50);
   const [editingId, setEditingId] = useState<string | null>(null);
+
+  // 🆕 Added for search popup feature
+  const [searchMarker, setSearchMarker] = useState<L.Marker | null>(null);
+  const [placeName, setPlaceName] = useState<string>("");
+  const [municipality, setMunicipality] = useState<string>("");
+  const [province, setProvince] = useState<string>("");
 
   useEffect(() => {
     const unsub = onSnapshot(collection(db, "soilData"), (snap) => {
@@ -106,6 +118,80 @@ const Dashboard: React.FC = () => {
   const handleMapClick = ({ lat, lng }: { lat: number; lng: number }) => {
     setLat(lat);
     setLng(lng);
+  };
+
+  // 🆕 Reverse geocode from OpenStreetMap (Nominatim)
+  const reverseGeocode = async (lat: number, lng: number) => {
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`
+      );
+      const data = await res.json();
+
+      const name =
+        data.address?.village ||
+        data.address?.town ||
+        data.address?.city ||
+        data.address?.suburb ||
+        "Unknown place";
+      const muni = data.address?.municipality || data.address?.town || "";
+      const prov = data.address?.state || data.address?.province || "";
+
+      setPlaceName(name);
+      setMunicipality(muni);
+      setProvince(prov);
+    } catch (err) {
+      console.error("Reverse geocoding failed:", err);
+    }
+  };
+
+  // 🆕 Create popup with design like the screenshot
+  const handleSearchLocation = async () => {
+    if (mapRef.current && lat && lng) {
+      const map = mapRef.current;
+      map.setView([lat, lng], 15);
+      await reverseGeocode(lat, lng);
+
+      // remove previous marker
+      if (searchMarker) map.removeLayer(searchMarker);
+
+      const markerIcon = L.icon({
+        iconUrl: "https://cdn-icons-png.flaticon.com/512/854/854878.png",
+        iconSize: [40, 40],
+        iconAnchor: [20, 40],
+        popupAnchor: [0, -35],
+      });
+
+      const newMarker = L.marker([lat, lng], { icon: markerIcon }).addTo(map);
+
+      const popupHTML = `
+        <div style="display:flex; align-items:center; gap:10px; max-width:260px; background:#fff; border-radius:14px; overflow:hidden; font-family:Arial; box-shadow:0 2px 8px rgba(0,0,0,0.25); padding:10px;">
+          <img src="https://cdn-icons-png.flaticon.com/512/854/854878.png" alt="location" style="width:60px; height:60px; border-radius:10px; object-fit:cover;"/>
+          <div style="flex:1;">
+            <h3 style="margin:0; font-size:16px; color:#111;">${placeName}</h3>
+            <p style="margin:0; color:#666; font-size:13px;">${municipality || ""}${
+        municipality && province ? ", " : ""
+      }${province}</p>
+            <a href="https://www.google.com/maps?q=${lat},${lng}" target="_blank" style="color:#1a73e8; font-size:13px; text-decoration:none;">
+              ${lat.toFixed(6)}, ${lng.toFixed(6)}
+            </a>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:6px; margin-left:5px;">
+            <div style="background:#00796B; border-radius:50%; padding:8px; display:flex; align-items:center; justify-content:center;">
+              <ion-icon name="navigate-outline" style="font-size:18px; color:white;"></ion-icon>
+            </div>
+            <div style="background:#E0F7FA; border-radius:50%; padding:8px; display:flex; align-items:center; justify-content:center;">
+              <ion-icon name="share-outline" style="font-size:18px; color:#00796B;"></ion-icon>
+            </div>
+          </div>
+        </div>
+      `;
+
+      newMarker.bindPopup(popupHTML).openPopup();
+      setSearchMarker(newMarker);
+    } else {
+      alert("Please enter valid Latitude and Longitude.");
+    }
   };
 
   const saveSoilData = async () => {
@@ -153,37 +239,71 @@ const Dashboard: React.FC = () => {
       <IonPage id="main-content">
         <IonHeader translucent>
           <IonToolbar>
-          <IonToolbar className="header-gradient">
-            <IonButtons slot="start">
-              <IonMenuButton autoHide={false}>
-                <IonIcon icon={menuOutline} />
-              </IonMenuButton>
-            </IonButtons>
-            
-            <IonTitle className="dashboard-center-title">
-              🌾 Soil Nutrient Corn Profiling
-            </IonTitle>
+            <IonToolbar className="header-gradient">
+              <IonButtons slot="start">
+                <IonMenuButton autoHide={false}>
+                  <IonIcon icon={menuOutline} />
+                </IonMenuButton>
+              </IonButtons>
+              <IonTitle className="dashboard-center-title">
+                🌾 Soil Nutrient Corn Profiling
+              </IonTitle>
             </IonToolbar>
           </IonToolbar>
         </IonHeader>
+
         <IonContent fullscreen>
-          <div className="map-header-bar" color= "transparent">
-            <span>
+          {/* 🔹 Map Header */}
+          <div className="map-header-bar">
+            <span className="map-header-title">
               <IonIcon icon={mapOutline} /> Map View
             </span>
-            <IonButton
-              fill="clear"
-              className={`soil-data-btn ${showForm ? "active" : ""}`}
-              onClick={() => setShowForm(!showForm)}
-            >
-               <strong>Soil Data Management</strong>
-              <IonIcon icon={chevronDownOutline} slot="end" />
-            </IonButton>
+
+            <div className="header-controls">
+              {/* 🔹 Lat/Lng Box beside Soil Data Management */}
+              <div className="latlng-box">
+                <IonInput
+                  placeholder="Latitude"
+                  type="number"
+                  value={lat}
+                  onIonChange={(e) =>
+                    setLat(parseFloat(e.detail.value as string))
+                  }
+                />
+                <IonInput
+                  placeholder="Longitude"
+                  type="number"
+                  value={lng}
+                  onIonChange={(e) =>
+                    setLng(parseFloat(e.detail.value as string))
+                  }
+                />
+                <IonButton
+                  fill="solid"
+                  color="success"
+                  onClick={handleSearchLocation}
+                >
+                  <IonIcon icon={searchOutline} slot="start" />
+                  Search
+                </IonButton>
+              </div>
+
+              {/* 🔹 Soil Data Management */}
+              <IonButton
+                fill="clear"
+                className={`soil-data-btn ${showForm ? "active" : ""}`}
+                onClick={() => setShowForm(!showForm)}
+              >
+                <strong>Soil Data Management</strong>
+                <IonIcon icon={chevronDownOutline} slot="end" />
+              </IonButton>
+            </div>
           </div>
 
-          {/* 🌍 Map (Full Width) */}
+          {/* 🌍 Map */}
           <div style={{ height: "80vh", width: "100%" }}>
             <MapView
+              ref={mapRef}
               markers={soilRecords.map((r) => ({
                 ...r,
                 latitude: r.lat,
@@ -201,7 +321,9 @@ const Dashboard: React.FC = () => {
             }`}
           >
             <div className="soil-box-header">
-              <strong>🧪 {editingId ? "Edit Soil Data" : "Add Soil Data"}</strong>
+              <strong>
+                🧪 {editingId ? "Edit Soil Data" : "Add Soil Data"}
+              </strong>
               <IonButton fill="clear" onClick={() => setShowForm(false)}>
                 <IonIcon icon={closeOutline} />
               </IonButton>

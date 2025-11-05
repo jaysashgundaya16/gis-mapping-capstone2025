@@ -37,7 +37,15 @@ const LandingPage: React.FC = () => {
       {/* ✅ Custom Header */}
       <IonHeader translucent>
         <IonToolbar>
-          <IonTitle className="toolbar-title">BUGTA</IonTitle>
+          {/* 🔹 Replaced text “BUGTA” with small logo image */}
+          <IonTitle className="toolbar-title">
+            <img
+              src="https://scontent.fmnl13-1.fna.fbcdn.net/v/t1.15752-9/522910962_729927136312896_982346129202668681_n.png?stp=dst-png_s480x480&_nc_cat=104&ccb=1-7&_nc_sid=0024fc&_nc_eui2=AeG7Lc0Y4KMg1EvxOtBlRS6gLTtn94KxtvItO2f3grG28q0Bncn_YCOKRCYNWzk2gi09uaCuObFS9BTgjn9i6hiF&_nc_ohc=zDIrCWxhKnkQ7kNvwH0hRxM&_nc_oc=Adl31H_rZGICJiK2ZAZvvLAI46SEVWd9uvHOvKrYIlvfoXSKCMR1cTpLIC03dPaTRms&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&_nc_ht=scontent.fmnl13-1.fna&oh=03_Q7cD3gE8owAjI7TkhbcPFSP8d-tRC5upuqPBRRVfLyz_m6K9Gg&oe=6927DCC3"  /* 🔸 replace this URL with your actual logo URL */
+              alt="Logo"
+              className="header-logo"
+            />
+          </IonTitle>
+
           <IonButtons slot="end" className="toolbar-buttons">
             <IonButton className="hover-glow" fill="clear" onClick={() => scrollTo("home")}>
               <span>Home</span>

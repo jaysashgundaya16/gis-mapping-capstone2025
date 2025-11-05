@@ -1,4 +1,10 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  forwardRef,
+  useImperativeHandle,
+} from "react";
 import {
   MapContainer,
   TileLayer,
@@ -50,12 +56,12 @@ import lindabanDataUrl from "../data/lindaban.geojson?url";
 import kalugmananDataUrl from "../data/kalugmanan.geojson?url";
 
 
-
 // ✅ Helper to get barangay name
 const getBarangayName = (feature: any): string => {
   const props = feature.properties || {};
   return props.Barangay || Object.keys(props)[0] || "Unknown";
 };
+
 
 // ✅ Custom icons (color-coded per crop)
 const cornIcon = new L.Icon({
@@ -64,6 +70,8 @@ const cornIcon = new L.Icon({
   iconAnchor: [15, 30],
   popupAnchor: [0, -25],
 });
+
+
 
 const greenIcon = new L.Icon({
   iconUrl:
@@ -86,7 +94,7 @@ interface MapViewProps {
   onMapClick?: (latlng: { lat: number; lng: number }) => void;
 }
 
-// ✅ Map click handler
+// Map click handler component
 const MapClickHandler: React.FC<{
   clickToSet?: boolean;
   onMapClick?: (latlng: { lat: number; lng: number }) => void;
@@ -99,12 +107,22 @@ const MapClickHandler: React.FC<{
   return null;
 };
 
-const MapView: React.FC<MapViewProps> = ({
-  markers = [],
-  clickToSet = false,
-  onMapClick,
-}) => {
-  const mapRef = useRef<L.Map | null>(null);
+
+
+// ForwardRef to expose setView
+const MapView = forwardRef<any, MapViewProps>(({ markers = [], clickToSet = false, onMapClick }, ref) => {
+  const internalMapRef = useRef<L.Map | null>(null);
+
+  // Expose small API to parent (Dashboard)
+  useImperativeHandle(ref, () => ({
+    setView: (latlng: [number, number], zoom = 15) => {
+      if (internalMapRef.current) {
+        internalMapRef.current.setView(latlng, zoom);
+      }
+    },
+    // you can expose more methods here if needed later
+  }));
+
   const [geojson, setGeojson] = useState<any>(null);
   const [lingionGeoJSON, setLingionGeoJSON] = useState<any>(null);
   const [sangkananGeoJSON, setSangkananGeoJSON] = useState<any>(null);
@@ -136,7 +154,26 @@ const MapView: React.FC<MapViewProps> = ({
   useEffect(() => {
     const loadFiles = async () => {
       try {
-        const [main, lingion, sangkanan, tankulan, dalirig, dicklum, santoNino, lunocan, mantibugao, minsuro, damilag, sanMiguel, alae, mambatangan, agusanCanyon, mampayag, lindaban, kalugmanan] = await Promise.all([
+        const [
+          main,
+          lingion,
+          sangkanan,
+          tankulan,
+          dalirig,
+          dicklum,
+          santoNino,
+          lunocan,
+          mantibugao,
+          minsuro,
+          damilag,
+          sanMiguel,
+          alae,
+          mambatangan,
+          agusanCanyon,
+          mampayag,
+          lindaban,
+          kalugmanan,
+        ] = await Promise.all([
           fetch(geojsonData).then((res) => res.json()),
           fetch(lingionDataUrl).then((res) => res.json()),
           fetch(sangkananDataUrl).then((res) => res.json()),
@@ -155,10 +192,6 @@ const MapView: React.FC<MapViewProps> = ({
           fetch(mampayagDataUrl).then((res) => res.json()),
           fetch(lindabanDataUrl).then((res) => res.json()),
           fetch(kalugmananDataUrl).then((res) => res.json()),
-          
-
-          
-
         ]);
         setGeojson(main);
         setLingionGeoJSON(lingion);
@@ -214,7 +247,7 @@ const MapView: React.FC<MapViewProps> = ({
     },
     {
       name: "Eufracia Lague",
-      address: "Zone-2 Lingi-on, Manolo Fortich, Bukidnon",
+      address: "Zone-1 Lingi-on, Manolo Fortich, Bukidnon",
       crop: "Corn",
       pH: 5.6,
       N: "L",
@@ -236,7 +269,7 @@ const MapView: React.FC<MapViewProps> = ({
     },
     {
       name: "Rosalita Dosayco",
-      address: "Zone-2 Lingi-on, Manolo Fortich, Bukidnon",
+      address: "Zone-5 Lingi-on, Manolo Fortich, Bukidnon",
       crop: "Corn",
       pH: 5.4,
       N: "L",
@@ -253,8 +286,8 @@ const MapView: React.FC<MapViewProps> = ({
     if (selectedBarangay === value || value === "") {
       setSelectedBarangay("");
       setShowBorders(false);
-      if (mapRef.current) {
-        mapRef.current.setView(defaultCenter, defaultZoom);
+      if (internalMapRef.current) {
+        internalMapRef.current.setView(defaultCenter, defaultZoom);
       }
     } else {
       setSelectedBarangay(value);
@@ -275,9 +308,9 @@ const MapView: React.FC<MapViewProps> = ({
 
   // ✅ Adjust zoom to barangay bounds
   useEffect(() => {
-    if (mapRef.current && filteredGeoJSON && filteredGeoJSON.features.length > 0) {
+    if (internalMapRef.current && filteredGeoJSON && filteredGeoJSON.features.length > 0) {
       const layer = L.geoJSON(filteredGeoJSON);
-      mapRef.current.fitBounds(layer.getBounds(), { padding: [20, 20], maxZoom: 13 });
+      internalMapRef.current.fitBounds(layer.getBounds(), { padding: [20, 20], maxZoom: 13 });
     }
   }, [filteredGeoJSON]);
 
@@ -389,11 +422,11 @@ const MapView: React.FC<MapViewProps> = ({
 
         {!loading && (
           <MapContainer
-            center={defaultCenter}
-            zoom={defaultZoom}
-            style={{ height: "100%", width: "100%" }}
-            ref={mapRef}
-          >
+              center={defaultCenter}
+              zoom={defaultZoom}
+              style={{ height: "100%", width: "100%" }}
+              ref={internalMapRef} 
+            >
             <MapClickHandler clickToSet={clickToSet} onMapClick={onMapClick} />
 
             <TileLayer
@@ -461,7 +494,6 @@ const MapView: React.FC<MapViewProps> = ({
             {kalugmananGeoJSON && (
               <GeoJSON data={kalugmananGeoJSON} style={{ color: "Black", weight: 2 }} />
             )}
-            
 
             {/* 🔹 Temporary demo farmer markers */}
             {tempFarmers.map((farmer, idx) => (
@@ -499,6 +531,6 @@ const MapView: React.FC<MapViewProps> = ({
       </div>
     </div>
   );
-};
+});
 
 export default MapView;

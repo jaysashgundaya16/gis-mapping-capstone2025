@@ -181,3 +181,17 @@
   width: 50px;
   margin-bottom: 10px;
 }
+
+
+/* 🔹 Header Logo Style (Aligned Left) */
+.header-logo {
+  height: 57px;          /* small, fixed size */
+  width: auto;
+  object-fit: contain;
+  display: block;
+  margin-left: 4px;     /* small spacing from the edge */
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
+
