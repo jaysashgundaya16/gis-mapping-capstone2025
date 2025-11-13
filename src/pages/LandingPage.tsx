@@ -45,7 +45,6 @@ const LandingPage: React.FC = () => {
               className="header-logo"
             />
           </IonTitle>
-
           <IonButtons slot="end" className="toolbar-buttons">
             <IonButton className="hover-glow" fill="clear" onClick={() => scrollTo("home")}>
               <span>Home</span>

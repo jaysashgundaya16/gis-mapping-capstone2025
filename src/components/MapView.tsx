@@ -116,7 +116,7 @@ const MapView = forwardRef<any, MapViewProps>(({ markers = [], clickToSet = fals
   // Expose small API to parent (Dashboard)
   useImperativeHandle(ref, () => ({
     setView: (latlng: [number, number], zoom = 15) => {
-      if (internalMapRef.current) {
+      if (internalMapRef.current) { 
         internalMapRef.current.setView(latlng, zoom);
       }
     },
@@ -222,78 +222,34 @@ const MapView = forwardRef<any, MapViewProps>(({ markers = [], clickToSet = fals
 
   // ✅ Firestore farms
   useEffect(() => {
-    const unsub = onSnapshot(collection(db, "farms"), (snapshot) => {
-      const data = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setFarmMarkers(data);
-    });
-    return () => unsub();
-  }, []);
+  const unsub = onSnapshot(collection(db, "soilTests"), (snapshot) => {
+    const data = snapshot.docs
+      .map((doc) => {
+        const docData = doc.data();
+        if (docData.lat && docData.lng) {
+          return {
+            id: doc.id,
+            ...docData,
+            lat: Number(docData.lat), // convert string to number
+            lng: Number(docData.lng),
+          };
+        }
+        return null;
+      })
+      .filter(Boolean); // remove nulls
+
+    console.log("✅ Farm markers loaded:", data); // ✅ Added console log
+
+    setFarmMarkers(data); // now farmMarkers contains usable numbers
+  });
+
+  return () => unsub();
+}, []);
+
+
 
   // ✅ Temporary farmer data (for demo)
-  const tempFarmers = [
-    {
-      name: "Emma M. Racines",
-      address: "Gaboc, Lingi-on, Manolo Fortich, Bukidnon",
-      crop: "Corn",
-      pH: 6.0,
-      N: "L",
-      P: "M",
-      K: "L",
-      lat: 8.41434677827997,
-      lng: 124.87456306604953,
-    },
-    {
-      name: "Eufracia Lague",
-      address: "Zone-1 Lingi-on, Manolo Fortich, Bukidnon",
-      crop: "Corn",
-      pH: 5.6,
-      N: "L",
-      P: "L",
-      K: "L",
-      lat: 8.390732618284927,
-      lng: 124.8727281038504,
-    },
-    {
-      name: "Dennis Cahalin",
-      address: "Zone-2 Lingi-on, Manolo Fortich, Bukidnon",
-      crop: "Corn",
-      pH: 5.8,
-      N: "L",
-      P: "L",
-      K: "M",
-      lat: 8.403669824905714,
-      lng: 124.87770208926696,
-    },
-    {
-      name: "Rosalita Dosayco",
-      address: "Zone-5 Lingi-on, Manolo Fortich, Bukidnon",
-      crop: "Corn",
-      pH: 5.4,
-      N: "L",
-      P: "M",
-      K: "H",
-      lat: 8.418491935776231,
-      lng: 124.89307589276603,
-    },
-  ];
-
-  // ✅ Barangay select handler
-  const handleBarangaySelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value;
-    if (selectedBarangay === value || value === "") {
-      setSelectedBarangay("");
-      setShowBorders(false);
-      if (internalMapRef.current) {
-        internalMapRef.current.setView(defaultCenter, defaultZoom);
-      }
-    } else {
-      setSelectedBarangay(value);
-      setShowBorders(true);
-    }
-  };
+  
 
   // ✅ Filtered GeoJSON (for selected barangay)
   const filteredGeoJSON =
@@ -378,7 +334,7 @@ const MapView = forwardRef<any, MapViewProps>(({ markers = [], clickToSet = fals
           <div>
             <label style={{ fontWeight: "bold" }}>Barangay:</label>
             <select
-              onChange={handleBarangaySelect}
+              
               value={selectedBarangay}
               style={{ width: "100%", padding: "6px" }}
             >
@@ -496,36 +452,30 @@ const MapView = forwardRef<any, MapViewProps>(({ markers = [], clickToSet = fals
             )}
 
             {/* 🔹 Temporary demo farmer markers */}
-            {tempFarmers.map((farmer, idx) => (
-              <Marker key={idx} position={[farmer.lat, farmer.lng]} icon={cornIcon}>
+            
+
+            
+            {/* ✅ Farm markers from Firestore (farms + farmersProfile combined) */}
+            {farmMarkers.map((farm, idx) => (
+              <Marker
+                key={idx}
+                position={[farm.lat, farm.lng]}  // ✅ use lat/lng
+                icon={greenIcon}
+              >
                 <Popup>
-                  <b>{farmer.name}</b>
-                  <br />
-                  📍 <b>Address:</b> {farmer.address}
-                  <br />
-                  🌽 <b>Crop:</b> {farmer.crop}
-                  <br />
-                  🌡 <b>pH:</b> {farmer.pH}
-                  <br />
-                  🧪 <b>N:</b> {farmer.N} | <b>P:</b> {farmer.P} | <b>K:</b> {farmer.K}
+                  <b>Farmer:</b> {farm.farmerName || farm.name || "N/A"} <br />
+                  <b>Crop:</b> {farm.cropType || farm.crop || "N/A"} <br />
+                  <b>Barangay:</b> {farm.barangay || "Unknown"} <br />
+                  {farm.pH && (
+                    <>
+                      🌡 <b>pH:</b> {farm.pH} <br />
+                      🧪 <b>N:</b> {farm.N} | <b>P:</b> {farm.P} | <b>K:</b> {farm.K}
+                    </>
+                  )}
                 </Popup>
               </Marker>
             ))}
 
-            {/* Farm markers from Firestore */}
-            {farmMarkers.map((farm, idx) => (
-              <Marker
-                key={idx}
-                position={[farm.latitude, farm.longitude]}
-                icon={greenIcon}
-              >
-                <Popup>
-                  <b>Farmer:</b> {farm.farmerName || "N/A"} <br />
-                  <b>Crop:</b> {farm.cropType || "N/A"} <br />
-                  <b>Barangay:</b> {farm.barangay || "Unknown"}
-                </Popup>
-              </Marker>
-            ))}
           </MapContainer>
         )}
       </div>

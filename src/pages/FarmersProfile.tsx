@@ -1,4 +1,3 @@
-// src/pages/FarmersProfile.tsx
 import React, { useState, useEffect } from "react";
 import {
   IonPage,
@@ -43,6 +42,22 @@ import {
 } from "firebase/firestore";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+import L from "leaflet";
+
+// 🧭 Custom marker icons
+const currentLocationIcon = L.icon({
+  iconUrl: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
+  iconSize: [32, 32],
+  iconAnchor: [16, 32],
+  popupAnchor: [0, -30],
+});
+
+const farmerIcon = L.icon({
+  iconUrl: "https://maps.google.com/mapfiles/ms/icons/green-dot.png",
+  iconSize: [32, 32],
+  iconAnchor: [16, 32],
+  popupAnchor: [0, -30],
+});
 
 interface SoilTest {
   id: string;
@@ -61,17 +76,26 @@ interface SoilTest {
   fertilizer1: string;
   fertilizer2: string;
   fertilizer3: string;
+  lat?: string;
+  lng?: string;
+
 }
 
 const FarmersProfile: React.FC = () => {
-  const [municipality, setMunicipality] = useState("Lingion");
+  const [municipality, setMunicipality] = useState("All");
+  const [selectedCrop, setSelectedCrop] = useState("All"); // ✅ New state for crop dropdown
   const [records, setRecords] = useState<SoilTest[]>([]);
   const [filteredRecords, setFilteredRecords] = useState<SoilTest[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const [editingRecord, setEditingRecord] = useState<SoilTest | null>(null);
   const [form, setForm] = useState<Partial<SoilTest>>({});
+
+  // Refs for Leaflet map and marker layer group
+  const mapRef = React.useRef<any>(null);
+  const markersRef = React.useRef<any>(null);
+  const [editingRecord, setEditingRecord] = useState<SoilTest | null>(null);
+  
 
   // Fetch records
   useEffect(() => {
@@ -88,6 +112,42 @@ const FarmersProfile: React.FC = () => {
     return () => unsubscribe();
   }, []);
 
+  // 🗺️ Render markers for farmers on the map
+useEffect(() => {
+  if (!mapRef.current) return;
+
+  // Create the map once if not initialized
+  if (!mapRef.current._leaflet_id) {
+    mapRef.current = L.map("map", {
+      center: [8.3575, 124.8645], // Center of Manolo Fortich
+      zoom: 12,
+    });
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "&copy; OpenStreetMap contributors",
+    }).addTo(mapRef.current);
+
+    markersRef.current = L.layerGroup().addTo(mapRef.current);
+  }
+
+  // Clear existing markers
+  markersRef.current.clearLayers();
+
+  // Add all farmer markers (green)
+  filteredRecords.forEach((rec) => {
+    if (rec.lat && rec.lng) {
+      const marker = L.marker([parseFloat(rec.lat), parseFloat(rec.lng)], {
+        icon: farmerIcon,
+      }).addTo(markersRef.current);
+
+      marker.bindPopup(
+        `<b>${rec.farmerName}</b><br>${rec.crop}<br>${rec.siteOfFarm}`
+      );
+    }
+  });
+}, [filteredRecords]);
+
+
   // Filter search
   useEffect(() => {
     const filtered = records.filter((rec) =>
@@ -96,55 +156,153 @@ const FarmersProfile: React.FC = () => {
     setFilteredRecords(filtered);
   }, [searchTerm, records]);
 
-  // Add/Edit
-  const openAdd = () => {
-    setForm({});
-    setEditingRecord(null);
-    setShowModal(true);
-  };
+// ✅ Barangay + Crop Filtering Logic (supports partial match and shows all by default)
+useEffect(() => {
+  const filtered = records.filter((rec) => {
+    const farm = rec.siteOfFarm?.toLowerCase().trim() || "";
+    const crop = rec.crop?.toLowerCase().trim() || "";
+    const selectedBarangay = municipality?.toLowerCase().trim() || "";
+    const selectedCropName = selectedCrop?.toLowerCase().trim() || "";
 
-  const openEdit = (record: SoilTest) => {
-    setForm(record);
-    setEditingRecord(record);
-    setShowModal(true);
-  };
+    const matchesBarangay =
+      selectedBarangay === "all" || farm.includes(selectedBarangay);
+    const matchesCrop =
+      selectedCropName === "all" || crop.includes(selectedCropName);
 
-  // Save
-  const handleSave = async () => {
-    if (!form.farmerName || !form.siteOfFarm || !form.area || !form.crop) {
-      alert("Please fill in all required fields.");
-      return;
+    return matchesBarangay && matchesCrop;
+  });
+
+  // ✅ If no filters selected, show all records
+  if (!municipality && !selectedCrop) {
+    setFilteredRecords(records);
+  } else {
+    setFilteredRecords(filtered);
+  }
+}, [municipality, selectedCrop, records]);
+
+
+
+
+// Add/Edit
+const openAdd = () => {
+  setForm({});
+  setEditingRecord(null);
+  setShowModal(true);
+};
+
+const openEdit = (record: SoilTest) => {
+  setForm(record);
+  setEditingRecord(record);
+  setShowModal(true);
+};
+
+// Save
+const handleSave = async () => {
+  if (!form.farmerName || !form.siteOfFarm || !form.area || !form.crop) {
+    alert("Please fill in all required fields.");
+    return;
+  }
+  try {
+    if (editingRecord) {
+      await updateDoc(doc(db, "soilTests", editingRecord.id), { ...form });
+    } else {
+      await addDoc(collection(db, "soilTests"), {
+        farmerName: form.farmerName,
+        siteOfFarm: form.siteOfFarm,
+        area: form.area,
+        crop: form.crop,
+        lat: form.lat || "",
+        lng: form.lng || "",
+        ph: form.ph || "",
+        nitrogen: form.nitrogen || "",
+        phosphorus: form.phosphorus || "",
+        potassium: form.potassium || "",
+        lime: form.lime || "",
+        nVal: form.nVal || "",
+        pVal: form.pVal || "",
+        kVal: form.kVal || "",
+        fertilizer1: form.fertilizer1 || "",
+        fertilizer2: form.fertilizer2 || "",
+        fertilizer3: form.fertilizer3 || "",
+      });
     }
-    try {
-      if (editingRecord) {
-        await updateDoc(doc(db, "soilTests", editingRecord.id), { ...form });
-      } else {
-        await addDoc(collection(db, "soilTests"), {
-          farmerName: form.farmerName,
-          siteOfFarm: form.siteOfFarm,
-          area: form.area,
-          crop: form.crop,
-          ph: form.ph || "",
-          nitrogen: form.nitrogen || "",
-          phosphorus: form.phosphorus || "",
-          potassium: form.potassium || "",
-          lime: form.lime || "",
-          nVal: form.nVal || "",
-          pVal: form.pVal || "",
-          kVal: form.kVal || "",
-          fertilizer1: form.fertilizer1 || "",
-          fertilizer2: form.fertilizer2 || "",
-          fertilizer3: form.fertilizer3 || "",
-        });
-      }
-    } catch (err) {
-      console.error("Error saving record:", err);
-      alert("Error saving record.");
-    }
+    // close modal and reset form after successful save
     setShowModal(false);
-    setEditingRecord(null);
     setForm({});
-  };
+    setEditingRecord(null);
+  } catch (err) {
+    console.error("Error saving record:", err);
+    alert("Error saving record.");
+  }
+};
+
+// 🔹 Use my current location
+const handleUseMyLocation = () => {
+  if (!navigator.geolocation) {
+    alert("Geolocation is not supported on this device.");
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      const { latitude, longitude } = pos.coords;
+
+      // Update the form fields with current location
+      setForm((prev) => ({
+        ...prev,
+        lat: latitude.toFixed(6),
+        lng: longitude.toFixed(6),
+      }));
+
+      // Add marker on the map
+      if (mapRef.current) {
+        // ensure a LayerGroup for markers exists; create it if missing
+        if (!markersRef.current && L && typeof L.layerGroup === "function") {
+          try {
+            markersRef.current = L.layerGroup().addTo(mapRef.current);
+          } catch (e) {
+            // fallback - if adding layerGroup fails, leave markersRef null
+            console.warn("Failed to create marker layer group:", e);
+          }
+        }
+
+        // clear old markers if any
+        if (markersRef.current && typeof markersRef.current.clearLayers === "function") {
+          markersRef.current.clearLayers();
+        }
+
+        // create a marker at the current position and add to layer group if available
+        try {
+          if (markersRef.current && typeof markersRef.current.addLayer === "function") {
+            const marker = L.marker([latitude, longitude], { icon: currentLocationIcon }).addTo(markersRef.current!);
+            marker.bindPopup(`<b>Current Location</b>`).openPopup();
+          } else {
+            // fallback: add marker directly to the map
+            const marker = L.marker([latitude, longitude]).addTo(mapRef.current);
+            marker.bindPopup(`<b>Current Location</b>`).openPopup();
+          }
+        } catch (e) {
+          console.error("Failed to add marker:", e);
+        }
+
+        // center and zoom the map to your location
+        try {
+          if (typeof mapRef.current.setView === "function") {
+            mapRef.current.setView([latitude, longitude], 16);
+          }
+        } catch (e) {
+          console.warn("Failed to set map view:", e);
+        }
+      }
+    },
+    (err) => {
+      console.error("Location access denied:", err);
+      alert("Please allow location access to use this feature.");
+    }
+  );
+};
+
+
 
   // Delete
   const handleDelete = async (id: string) => {
@@ -152,6 +310,8 @@ const FarmersProfile: React.FC = () => {
       await deleteDoc(doc(db, "soilTests", id));
     }
   };
+
+  
 
   // Generate PDF
   const generatePdfForRecord = async (rec: SoilTest) => {
@@ -205,7 +365,6 @@ const FarmersProfile: React.FC = () => {
           </div>
         </div>
 
-        <!-- FERTILIZER RECOMMENDATION SECTION -->
         <div style="margin-top:10px; border-top:1px solid #000; padding-top:10px;">
           <div style="font-weight:700; text-align:center;">FERTILIZER RECOMMENDATION</div>
           <div style="text-align:left; display:inline-block; margin-top:5px; margin-bottom:25px;">
@@ -274,32 +433,70 @@ const FarmersProfile: React.FC = () => {
             <>
               <div style={{ backgroundColor: "#ffffffff", color: "black", padding: "15px" }}>
                 <IonGrid>
+
+                  
                   <IonRow>
-                    <IonCol size="4">
-                      <h3>Local Government Officials</h3>
-                      <p>Governor: manolo fortich.gov</p>
-                      <p>Vice Governor: manolo fortich.vgov</p>
-                      <p>Prov. Agri. Officer: manolo fortich.prago</p>
-                    </IonCol>
-                    <IonCol size="4">
-                      <h3>Provincial Agriculture Personnel</h3>
-                      <p>Asst. Agri Prov. Officer: manolo fortich.asstprago</p>
-                      <p>Total # of Prov. Agriculturist: 1</p>
-                      <p>Total # of Prov. Agricultural Tech.: 1</p>
-                    </IonCol>
-                    <IonCol size="4">
+                    
+
+                    {/* ✅ Existing Barangay Dropdown */}
+                    <IonCol size="2">
                       <h3>Select Barangay</h3>
                       <IonSelect
                         value={municipality}
                         onIonChange={(e) => setMunicipality(e.detail.value)}
                       >
-                        <IonSelectOption value="Lingion">Lingion</IonSelectOption>
+                        <IonSelectOption value="All">All Barangays</IonSelectOption>
+                        <IonSelectOption value="Agusan Canyon">Agusan Canyon</IonSelectOption>
+                        <IonSelectOption value="Alae">Alae</IonSelectOption>
+                        <IonSelectOption value="Dahilayan">Dahilayan</IonSelectOption>
+                        <IonSelectOption value="Dalirig">Dalirig</IonSelectOption>
+                        <IonSelectOption value="Damilag">Damilag</IonSelectOption>
+                        <IonSelectOption value="Diclum">Diclum</IonSelectOption>
+                        <IonSelectOption value="Guilang-guilang">Guilang-guilang</IonSelectOption>
+                        <IonSelectOption value="Kalugmanan">Kalugmanan</IonSelectOption>
+                        <IonSelectOption value="Lindaban">Lindaban</IonSelectOption>
+                        <IonSelectOption value="Lingi-on">Lingi-on</IonSelectOption>
+                        <IonSelectOption value="Lunocan">Lunocan</IonSelectOption>
+                        <IonSelectOption value="Maluko">Maluko</IonSelectOption>
+                        <IonSelectOption value="Mambatangan">Mambatangan</IonSelectOption>
+                        <IonSelectOption value="Mampayag">Mampayag</IonSelectOption>
+                        <IonSelectOption value="Minsuro">Minsuro</IonSelectOption>
+                        <IonSelectOption value="Mantibugao">Mantibugao</IonSelectOption>
+                        <IonSelectOption value="Tankulan">Tankulan</IonSelectOption>
+                        <IonSelectOption value="San Miguel">San Miguel</IonSelectOption>
+                        <IonSelectOption value="Sankanan">Sankanan</IonSelectOption>
+                        <IonSelectOption value="Santiago">Santiago</IonSelectOption>
+                        <IonSelectOption value="Santo Niño">Santo Niño</IonSelectOption>
+                        <IonSelectOption value="Ticala">Ticala</IonSelectOption>
+                      </IonSelect>
+                    </IonCol>
+
+                    {/* ✅ New Crop Dropdown beside Barangay */}
+                    <IonCol size="2">
+                      <h3>Select Crop</h3>
+                      <IonSelect
+                        value={selectedCrop}
+                        onIonChange={(e) => setSelectedCrop(e.detail.value)}
+                      >
+                        <IonSelectOption value="All">All Crops</IonSelectOption>
+                        <IonSelectOption value="Corn">Corn</IonSelectOption>
+                        <IonSelectOption value="Rice">Rice</IonSelectOption>
+                        <IonSelectOption value="Sugarcane">Sugarcane</IonSelectOption>
+                        <IonSelectOption value="Banana">Banana</IonSelectOption>
+                        <IonSelectOption value="Pineapple">Pineapple</IonSelectOption>
+                        <IonSelectOption value="Coconut">Coconut</IonSelectOption>
+                        <IonSelectOption value="Vegetables">Vegetables</IonSelectOption>
+                        <IonSelectOption value="Root Crops">Root Crops</IonSelectOption>
                       </IonSelect>
                     </IonCol>
                   </IonRow>
                 </IonGrid>
+
+                
               </div>
 
+              {/* ✅ rest of your table, modal, etc. remain unchanged */}
+              {/* --------------------- TABLE --------------------- */}
               <IonGrid>
                 <IonRow className="ion-align-items-center ion-padding-horizontal ion-margin-top">
                   <IonCol size="8">
@@ -331,6 +528,8 @@ const FarmersProfile: React.FC = () => {
                   <IonCol>Site of Farm</IonCol>
                   <IonCol>Area</IonCol>
                   <IonCol>Crop</IonCol>
+                  <IonCol>Latitude</IonCol>
+                  <IonCol>Longitude</IonCol>
                   <IonCol>pH</IonCol>
                   <IonCol>N</IonCol>
                   <IonCol>P</IonCol>
@@ -338,11 +537,11 @@ const FarmersProfile: React.FC = () => {
                   <IonCol>Lime</IonCol>
                   <IonCol>N (kg)</IonCol>
                   <IonCol>P (kg)</IonCol>
-                  <IonCol size="0.9">K (kg)</IonCol>
+                  <IonCol size="0.6">K (kg)</IonCol>
                   
                   <IonCol style={{ textAlign: "center" }} >Fertilizer Recommendation</IonCol>
                   
-                  <IonCol size="1.8"></IonCol>
+                  <IonCol size="1.4"></IonCol>
                 </IonRow>
 
                 {filteredRecords.length === 0 ? (
@@ -373,6 +572,8 @@ const FarmersProfile: React.FC = () => {
                       <IonCol>{rec.siteOfFarm}</IonCol>
                       <IonCol>{rec.area}</IonCol>
                       <IonCol>{rec.crop}</IonCol>
+                      <IonCol>{rec.lat}</IonCol>
+                      <IonCol>{rec.lng}</IonCol>
                       <IonCol>{rec.ph}</IonCol>
                       <IonCol>{rec.nitrogen}</IonCol>
                       <IonCol>{rec.phosphorus}</IonCol>
@@ -432,6 +633,8 @@ const FarmersProfile: React.FC = () => {
                 { label: "Site of Farm", key: "siteOfFarm" },
                 { label: "Area (ha)", key: "area" },
                 { label: "Crop", key: "crop" },
+                { label: "Latitude", key: "lat" },
+                { label: "Longitude", key: "lng" },
                 { label: "pH", key: "ph" },
                 { label: "Lime (tons/ha)", key: "lime" },
                 { label: "N (kg/ha/kg/plant)", key: "nVal" },
@@ -452,6 +655,8 @@ const FarmersProfile: React.FC = () => {
                 </IonItem>
               ))}
 
+              
+
               {["nitrogen", "phosphorus", "potassium"].map((nutrient) => (
                 <IonItem key={nutrient}>
                   <IonLabel position="stacked">
@@ -470,6 +675,9 @@ const FarmersProfile: React.FC = () => {
                 </IonItem>
               ))}
 
+              <IonButton expand="block" color="medium" onClick={handleUseMyLocation}>
+                Use My Current Location
+              </IonButton>
               <IonButton
                 expand="block"
                 color="success"
@@ -494,3 +702,4 @@ const FarmersProfile: React.FC = () => {
 };
 
 export default FarmersProfile;
+
