@@ -337,6 +337,7 @@ const MapView = forwardRef<any, MapViewProps>(({ markers = [], clickToSet = fals
               
               value={selectedBarangay}
               style={{ width: "100%", padding: "6px" }}
+              onChange={(e) => setSelectedBarangay(e.target.value)}
             >
               <option value="">Select Barangay</option>
               {barangays.map((bgy) => (
