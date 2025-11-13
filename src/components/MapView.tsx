@@ -292,7 +292,7 @@ const MapView = forwardRef<any, MapViewProps>(({ markers = [], clickToSet = fals
         {/* Header with DA logo */}
         <div style={{ textAlign: "center", marginBottom: "15px" }}>
           <img
-            src="https://scontent.fmnl13-3.fna.fbcdn.net/v/t1.15752-9/566582844_1306498070781604_8401820456558094869_n.jpg?_nc_cat=101&ccb=1-7&_nc_sid=0024fc&_nc_eui2=AeFF06cdkjGbhGXdlRgLuYJgBU5WPDAv4eIFTlY8MC_h4m9B-H74BDQVv45n8eFSHHVeF6CyO92_PgK2-mJFVk0l&_nc_ohc=adtClkziJnwQ7kNvwHwMp6J&_nc_oc=AdkM68JhRwrLBRBr6Go8-9JIzxD-100p_qaGi0-niMiASr8bLCRPw7XGQPv8boIsYho&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&_nc_ht=scontent.fmnl13-3.fna&oh=03_Q7cD3gFHO-zKKdztUc6lYH5TX_TDmQvkiExR1OFBx80gETYBQg&oe=6923B7C1"
+            src="https://scontent.fdvo1-2.fna.fbcdn.net/v/t1.15752-9/435128497_1021547552609800_2173027098169736129_n.jpg?_nc_cat=102&ccb=1-7&_nc_sid=0024fc&_nc_eui2=AeHhOeYdZEKOEMHr2lLY-IrLL2UmIj11gJsvZSYiPXWAm0nd9-DDMEkYmq42eITAQXGZztExuM3RCUlcUWvGQSUl&_nc_ohc=MG2nOTKssN4Q7kNvwGLYZtZ&_nc_oc=Admuy02aRGPgHW_PWZHtfVxE8dK0CWMx-KUqZo4N5wFDan6-o1XhjUbCCi4W3WI37xk&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&_nc_ht=scontent.fdvo1-2.fna&oh=03_Q7cD3wGOJP_BEQ1-3M7rSXOCcdzW8o4dvgLIXUviwadaOwvnDw&oe=693DB580"
             alt="Department of Agriculture Logo"
             style={{ width: "147px", marginBottom: "5px" }}
           />
