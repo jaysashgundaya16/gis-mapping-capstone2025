@@ -730,26 +730,7 @@ const handleUseMyLocation = () => {
                 </IonItem>
               ))}
 
-              <IonGrid>
-                {filteredRecords.map((rec) => (
-                  <IonRow key={rec.id} className="ion-padding-vertical ion-border-bottom">
-                    <IonCol size="3">{rec.farmerName}</IonCol>
-                    <IonCol size="2">{rec.crop}</IonCol>
-                    <IonCol size="3">{rec.siteOfFarm}</IonCol>
-                    <IonCol size="2">
-                      <IonButton color="warning" onClick={() => openEdit(rec)}>
-                        <IonIcon icon={createOutline} />
-                      </IonButton>
-                      <IonButton color="danger" onClick={() => handleDelete(rec.id)}>
-                        <IonIcon icon={trashOutline} />
-                      </IonButton>
-                      <IonButton color="primary" onClick={() => generatePdfForRecord(rec)}>
-                        <IonIcon icon={documentOutline} />
-                      </IonButton>
-                    </IonCol>
-                      </IonRow>
-                    ))}
-                  </IonGrid>
+              
 
               {["nitrogen", "phosphorus", "potassium"].map((nutrient) => (
                 <IonItem key={nutrient}>
