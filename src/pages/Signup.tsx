@@ -32,62 +32,65 @@ const SignupPage: React.FC = () => {
   const ADMIN_EMAIL = "gundayajaysash@gmail.com";
 
   const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
+        e.preventDefault();
 
-    // ✅ Password check
-    if (password !== confirmPassword) {
-      presentAlert({
-        header: "Error",
-        message: "Passwords do not match.",
-        buttons: ["OK"],
-      });
-      return;
-    }
+        // Password check
+        if (password !== confirmPassword) {
+          presentAlert({
+            header: "Error",
+            message: "Passwords do not match.",
+            buttons: ["OK"],
+          });
+          return;
+        }
 
-    
-    
+        try {
+          // Create Firebase user
+          const { user } = await createUserWithEmailAndPassword(auth, email, password);
 
-    try {
-      // ✅ Register with Firebase
-      const { user } = await createUserWithEmailAndPassword(auth, email, password);
+          // Save to Firestore (Cloud Function will detect this)
+          await setDoc(doc(db, "pending_users", user.uid), {
+            uid: user.uid,
+            fullName,
+            username,
+            email,
+            createdAt: new Date(),
+            status: "pending",
 
-      // ✅ Save profile in Firestore
-      await setDoc(doc(db, "pending_users", user.uid), {
-          fullName,
-          username,
-          email,
-          createdAt: new Date(),
-          status: "pending"
-        });
+            // 🔥 Required for Admin Email Trigger
+            role: "pending_user",
+            requestType: "signup"
+          });
 
-      // ✅ Sign out right after signup
-      await signOut(auth);
+          // Logout user after signup
+          await signOut(auth);
 
-      // ✅ Success popup and redirect
-      presentAlert({
-        header: "Awaiting Admin Approval",
-        message: "Your registration request has been submitted. The admin must approve your account before you can log in.",
-        buttons: ["OK"],
-        onDidDismiss: () => router.push("/login", "root"),
-      });
-    } catch (error: any) {
-      let errorMessage = "Something went wrong. Please try again later.";
+          presentAlert({
+            header: "Awaiting Admin Approval",
+            message: "Your registration request has been submitted. The admin will review it and send approval to your email.",
+            buttons: ["OK"],
+            onDidDismiss: () => router.push("/login", "root"),
+          });
 
-      if (error.code === "auth/email-already-in-use") {
-        errorMessage = "Account is already in use.";
-      } else if (error.code === "auth/invalid-email") {
-        errorMessage = "Invalid email address.";
-      } else if (error.code === "auth/weak-password") {
-        errorMessage = "Password must be at least 6 characters.";
-      }
+        } catch (error: any) {
+          let errorMessage = "Something went wrong. Please try again later.";
 
-      presentAlert({
-        header: "Signup Failed",
-        message: errorMessage,
-        buttons: ["OK"],
-      });
-    }
-  };
+          if (error.code === "auth/email-already-in-use") {
+            errorMessage = "Account is already in use.";
+          } else if (error.code === "auth/invalid-email") {
+            errorMessage = "Invalid email address.";
+          } else if (error.code === "auth/weak-password") {
+            errorMessage = "Password must be at least 6 characters.";
+          }
+
+          presentAlert({
+            header: "Signup Failed",
+            message: errorMessage,
+            buttons: ["OK"],
+          });
+        }
+};
+
 
   return (
     <IonPage>

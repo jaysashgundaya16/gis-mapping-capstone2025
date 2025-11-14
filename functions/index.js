@@ -1,70 +1,134 @@
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const nodemailer = require("nodemailer");
+const cors = require("cors")({ origin: true });
 
 admin.initializeApp();
 
-// --- SMTP setup ---
+// 🔥 SAFE PROJECT ID (Fix for broken email links)
+const projectId =
+  process.env.GCP_PROJECT ||
+  process.env.GCLOUD_PROJECT ||
+  JSON.parse(process.env.FIREBASE_CONFIG).projectId;
+
+// ----- EMAIL TRANSPORTER -----
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: "gundayajaysash@gmail.com",        // <-- your Gmail
-    pass: "09268497457jaysash",          // <-- App Password
+    user: "gundayajaysash@gmail.com",
+    pass: "vxvmonozllrbswbe", // APP PASSWORD ONLY
   },
 });
 
-// --- Function to send email when a new pending user signs up ---
+// ----- SEND EMAIL TO ADMIN WHEN USER SIGNS UP -----
 exports.sendApprovalEmail = functions.firestore
-    .document("pending_users/{pending_userId}")
-    .onCreate(async (snap, context) => {
-      const userData = snap.data();
-      const userId = context.params.pending_userId;
- // ✅ must match path variable
+  .document("pending_users/{pending_userId}")
+  .onCreate(async (snap, context) => {
+    const userData = snap.data();
+    const uid = context.params.pending_userId;
 
-      const approveLink = `https://us-central1-bugta-13358.cloudfunctions.net/httpApproveUser?uid=${userId}`;
-      const rejectLink  = `https://us-central1-bugta-13358.cloudfunctions.net/httpRejectUser?uid=${userId}`;
+    // 🔥 FIXED LINKS
+    const approveLink = `https://us-central1-${projectId}.cloudfunctions.net/httpApproveUser?uid=${uid}`;
+    const rejectLink = `https://us-central1-${projectId}.cloudfunctions.net/httpRejectUser?uid=${uid}`;
 
-      const mailOptions = {
-        from: "bugta.app@gmail.com",
-        to: "gundayajaysash@gmail.com", // admin only
-        subject: "New User Approval Needed",
-        html: `
-          <p>Hello Admin,</p>
-          <p>A new user signed up:</p>
-          <ul>
-            <li>Name: ${userData.fullName || "N/A"}</li>
-            <li>Email: ${userData.email || "N/A"}</li>
-          </ul>
-          <p>Please approve or reject this account:</p>
-          <p><a href="${approveLink}">Approve</a> | <a href="${rejectLink}">Reject</a></p>
-        `,
-      };
+    const mailOptions = {
+      from: "jaysashgundaya17@gmail.com",
+      to: "gundayajaysash@gmail.com", // Admin email
+      subject: "BUGTA – New User Signup Pending Approval",
+      html: `
+        <p><b>New user registration request:</b></p>
+        <ul>
+          <li>Name: ${userData.fullName}</li>
+          <li>Email: ${userData.email}</li>
+        </ul>
 
-      try {
-        await transporter.sendMail(mailOptions);
-        console.log("Approval email sent to admin for:", userData.email);
-      } catch (error) {
-        console.error("Error sending email:", error);
-      }
-    });
+        <p><b>Select an action:</b></p>
 
+        <p>
+          <a href="${approveLink}"
+            style="
+              padding: 10px 16px;
+              background: green;
+              color: white;
+              text-decoration: none;
+              font-weight: bold;
+              border-radius: 6px;
+            "
+          >APPROVE</a>
+        </p>
 
-// --- Reject User Function ---
-exports.httpRejectUser = functions.https.onRequest(async (req, res) => {
-  const uid = req.query.uid;
+        <p>
+          <a href="${rejectLink}"
+            style="
+              padding: 10px 16px;
+              background: red;
+              color: white;
+              text-decoration: none;
+              font-weight: bold;
+              border-radius: 6px;
+            "
+          >REJECT</a>
+        </p>
+      `,
+    };
 
-  if (!uid) return res.status(400).send("Missing UID");
+    try {
+      await transporter.sendMail(mailOptions);
+      console.log("Approval email sent for:", userData.email);
+    } catch (error) {
+      console.error("Email sending error:", error);
+    }
+  });
 
-  try {
-    // Delete user from Auth
-    await admin.auth().deleteUser(uid);
+// ----- APPROVE USER -----
+exports.httpApproveUser = functions.https.onRequest((req, res) => {
+  cors(req, res, async () => {
+    const uid = req.query.uid;
+    if (!uid) return res.status(400).send("Missing UID");
 
-    // Update status in Firestore
-    await admin.firestore().doc(`pending_users/${uid}`).update({ status: "rejected" });
+    try {
+      const userDoc = admin.firestore().doc(`pending_users/${uid}`);
+      const userData = (await userDoc.get()).data();
 
-    res.send("User rejected successfully!");
-  } catch (error) {
-    console.error(error);
-    res.status(500).send("Error rejecting user");
-  }
+      if (!userData)
+        return res.status(404).send("User not found in pending list");
+
+      await admin.firestore().doc(`approved_users/${uid}`).set({
+        ...userData,
+        status: "approved",
+        approvedAt: new Date(),
+      });
+
+      await admin.auth().updateUser(uid, { disabled: false });
+
+      await userDoc.delete();
+
+      res.send("User APPROVED successfully!");
+    } catch (error) {
+      console.error(error);
+      res.status(500).send("Error approving user");
+    }
+  });
+});
+
+// ----- REJECT USER -----
+exports.httpRejectUser = functions.https.onRequest((req, res) => {
+  cors(req, res, async () => {
+    const uid = req.query.uid;
+    if (!uid) return res.status(400).send("Missing UID");
+
+    try {
+      await admin.auth().deleteUser(uid);
+
+      await admin.firestore().doc(`pending_users/${uid}`).update({
+        status: "rejected",
+        rejectedAt: new Date(),
+      });
+
+      res.send("User REJECTED successfully!");
+    } catch (error) {
+      console.error(error);
+      res.status(500).send("Error rejecting user");
+    }
+  });
 });
