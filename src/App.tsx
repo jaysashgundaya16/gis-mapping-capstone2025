@@ -5,7 +5,7 @@ import React, { useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./firebaseConfig";
 
-/* Core CSS required for Ionic components */
+/* Ionic CSS */
 import "@ionic/react/css/core.css";
 import "@ionic/react/css/normalize.css";
 import "@ionic/react/css/structure.css";
@@ -18,7 +18,6 @@ import "@ionic/react/css/flex-utils.css";
 import "@ionic/react/css/display.css";
 import "@ionic/react/css/palettes/dark.system.css";
 
-/* Theme variables */
 import "./theme/variables.css";
 
 /* Pages */
@@ -30,14 +29,14 @@ import EditProfile from "./pages/EditProfile";
 import FarmersProfile from "./pages/FarmersProfile";
 import GuestDashboard from "./pages/GuestDashboard";
 
-
 setupIonicReact();
 
-/* ✅ Protected Route */
-const PrivateRoute: React.FC<{ component: React.ComponentType<any>; path: string; exact?: boolean }> = ({
-  component: Component,
-  ...rest
-}) => {
+/* 🔐 PROTECTED ROUTE */
+const PrivateRoute: React.FC<{
+  component: React.ComponentType<any>;
+  path: string;
+  exact?: boolean;
+}> = ({ component: Component, ...rest }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -48,7 +47,11 @@ const PrivateRoute: React.FC<{ component: React.ComponentType<any>; path: string
   }, []);
 
   if (isAuthenticated === null) {
-    return <div style={{ padding: "2rem", textAlign: "center" }}>Checking authentication...</div>;
+    return (
+      <div style={{ padding: "2rem", textAlign: "center" }}>
+        Checking authentication...
+      </div>
+    );
   }
 
   return (
@@ -63,23 +66,23 @@ const PrivateRoute: React.FC<{ component: React.ComponentType<any>; path: string
 
 const App: React.FC = () => (
   <IonApp>
-    <IonReactRouter>
+    <IonReactRouter basename="/gis-mapping-capstone2025">
       <IonRouterOutlet>
-        {/* Public routes */}
-        <Route exact path="/gis-mapping-capstone2025" component={LandingPage} />
+
+        {/* Public */}
+        <Route exact path="/" component={LandingPage} />
         <Route exact path="/signup" component={Signup} />
         <Route exact path="/login" component={Login} />
         <Route exact path="/guest-dashboard" component={GuestDashboard} />
-        
 
-
-        {/* ✅ Protected routes */}
+        {/* Protected */}
         <PrivateRoute exact path="/dashboard" component={Dashboard} />
         <PrivateRoute exact path="/edit-profile" component={EditProfile} />
         <PrivateRoute exact path="/farmers-profile" component={FarmersProfile} />
 
-        {/* Redirect root to landing page */}
-        <Redirect exact from="/" to="/gis-mapping-capstone2025" />
+        {/* Fallback redirect */}
+        <Redirect to="/" />
+
       </IonRouterOutlet>
     </IonReactRouter>
   </IonApp>
