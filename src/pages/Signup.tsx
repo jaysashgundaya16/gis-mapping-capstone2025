@@ -44,36 +44,29 @@ const SignupPage: React.FC = () => {
       return;
     }
 
-    // ✅ Restrict to admin account only
-    if (email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
-      presentAlert({
-        header: "Signup Denied",
-        message: "Only the admin account is allowed to register.",
-        buttons: ["OK"],
-      });
-      return;
-    }
+    
+    
 
     try {
       // ✅ Register with Firebase
       const { user } = await createUserWithEmailAndPassword(auth, email, password);
 
       // ✅ Save profile in Firestore
-      await setDoc(doc(db, "users", user.uid), {
-        fullName,
-        username,
-        email,
-        role: "admin",
-        createdAt: new Date(),
-      });
+      await setDoc(doc(db, "pending_users", user.uid), {
+          fullName,
+          username,
+          email,
+          createdAt: new Date(),
+          status: "pending"
+        });
 
       // ✅ Sign out right after signup
       await signOut(auth);
 
       // ✅ Success popup and redirect
       presentAlert({
-        header: "Registration Complete",
-        message: "Your account has been created. Please log in.",
+        header: "Awaiting Admin Approval",
+        message: "Your registration request has been submitted. The admin must approve your account before you can log in.",
         buttons: ["OK"],
         onDidDismiss: () => router.push("/login", "root"),
       });
