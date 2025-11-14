@@ -78,7 +78,7 @@ const LandingPage: React.FC = () => {
           <div className="home-content">
             <div className="home-text">
               <h1>SOIL NUTRIENT PROFILING</h1>
-              <p>Municipal of Agriculture, Manolo Fortich Bukidnon</p>
+              <p> Municipal Agriculture Office</p>
 
               {/* ✅ Redirects to Login Page */}
               <IonButton fill="solid" color="warning" onClick={handleGetStarted}>
@@ -96,10 +96,10 @@ const LandingPage: React.FC = () => {
                   loop={true}
                 >
                   <SwiperSlide>
-                    <img src="https://img.freepik.com/premium-photo/cassava-plantationrow-cassava-tree-field-tapioca-starch-row-manioc-sprouts-agricultural-industrial-cultivation-cassava-planting-young-plants-by-plowing-lifting-drainage-ditch_980606-35.jpg" />
+                    <img src="https://static.vecteezy.com/system/resources/thumbnails/050/920/478/small_2x/the-layer-of-asphalt-road-with-soil-and-rock-photo.jpg" />
                   </SwiperSlide>
                   <SwiperSlide>
-                    <img src="https://media.istockphoto.com/id/1093461402/photo/cassava-tree-in-farm-and-sunset.jpg?s=612x612&w=0&k=20&c=I8mbMKMH1eAikVHDatdTcjGaykaJmqQ2CzlIYmZltrY=" />
+                    <img src="https://img.freepik.com/premium-photo/detailed-island-soil-stratification-layers-with-colorful-soil-horizons_1199394-72792.jpg" />
                   </SwiperSlide>
                 </Swiper>
               </div>
@@ -113,10 +113,10 @@ const LandingPage: React.FC = () => {
                   loop={true}
                 >
                   <SwiperSlide>
-                    <img src="https://img.freepik.com/premium-photo/agriculture-field-hd-8k-wallpaper-stock-photographic-image_853645-42779.jpg" />
+                    <img src="https://img.freepik.com/premium-photo/detailed-island-soil-stratification-layers-with-colorful-soil-horizons_1199394-72549.jpg" />
                   </SwiperSlide>
                   <SwiperSlide>
-                    <img src="https://wallpapers.com/images/featured/corn-gl1zm9ohjk7r7z8z.jpg" />
+                    <img src="https://static.vecteezy.com/system/resources/previews/021/896/230/large_2x/soil-horizon-each-horizon-is-different-in-color-surface-texture-structure-porosity-and-soil-reaction-there-are-5-horizons-namely-o-a-b-c-and-r-horizon-respectively-from-the-soil-surface-photo.jpg" />
                   </SwiperSlide>
                 </Swiper>
               </div>
