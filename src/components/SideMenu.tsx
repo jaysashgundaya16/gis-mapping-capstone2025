@@ -25,12 +25,18 @@ import {
 import { useIonRouter } from "@ionic/react";
 import { signOut, onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../firebaseConfig";
-import { doc, onSnapshot } from "firebase/firestore";
+import { collection, doc, onSnapshot } from "firebase/firestore";
+import { archiveOutline } from "ionicons/icons";
+import { IonBadge } from "@ionic/react";
+
+
 
 const SideMenu: React.FC = () => {
   const router = useIonRouter();
   const [presentAlert] = useIonAlert();
   const [userData, setUserData] = useState<any>(null);
+  const [archiveCount, setArchiveCount] = useState<number>(0);
+
 
   // ✅ Load user data live from Firestore
   useEffect(() => {
@@ -53,6 +59,15 @@ const SideMenu: React.FC = () => {
             });
           }
         });
+
+        useEffect(() => {
+          const unsub = onSnapshot(collection(db, "archives"), (snapshot) => {
+            setArchiveCount(snapshot.size);
+          });
+
+          return () => unsub();
+        }, []);
+
 
         return () => unsubDoc();
       } else {
@@ -116,7 +131,21 @@ const SideMenu: React.FC = () => {
             <IonItem button onClick={() => router.push("/farmers-profile", "forward")}>
               <IonIcon icon={peopleCircleOutline} slot="start" />
               <IonLabel>Farmer's Profile</IonLabel>
-            </IonItem>         
+            </IonItem>
+            <IonItem
+              button
+              onClick={() => router.push("/archive", "forward")}
+              color={router.routeInfo.pathname === "/archive" ? "primary" : undefined}
+            >
+              <IonIcon icon={archiveOutline} slot="start" />
+              <IonLabel>Archived Records</IonLabel>
+              {archiveCount > 0 && (
+                <IonBadge color="danger" slot="end">{archiveCount}</IonBadge>
+              )}
+            </IonItem>
+
+            
+         
           </IonMenuToggle>
         </IonList>
       </IonContent>

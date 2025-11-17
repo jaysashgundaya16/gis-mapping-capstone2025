@@ -28,6 +28,7 @@ import Login from "./pages/Login";
 import EditProfile from "./pages/EditProfile";
 import FarmersProfile from "./pages/FarmersProfile";
 import GuestDashboard from "./pages/GuestDashboard";
+import Archive from "./pages/ArchivePage";
 
 setupIonicReact();
 
@@ -74,6 +75,8 @@ const App: React.FC = () => (
         <Route exact path="/signup" component={Signup} />
         <Route exact path="/login" component={Login} />
         <Route exact path="/guest-dashboard" component={GuestDashboard} />
+        <Route path="/archive" component={Archive} exact />
+
 
         {/* Protected */}
         <PrivateRoute exact path="/dashboard" component={Dashboard} />

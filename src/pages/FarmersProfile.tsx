@@ -39,6 +39,7 @@ import {
   onSnapshot,
   query,
   orderBy,
+  setDoc,
 } from "firebase/firestore";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
@@ -278,6 +279,25 @@ const handleSave = async () => {
   }
 };
 
+const handlePermanentDelete = async (id: string) => {
+  const archiveRef = doc(db, "archives", id);
+  await deleteDoc(archiveRef);
+};
+
+
+const handleRetrieve = async (id: string, data: any) => {
+  const mainRef = doc(db, "soilTests", id);
+  const archiveRef = doc(db, "archives", id);
+
+  await setDoc(mainRef, {
+    ...data,
+    restoredAt: new Date(),
+  });
+
+  await deleteDoc(archiveRef);
+};
+
+
 // 🔹 Use my current location
 const handleUseMyLocation = () => {
   if (!navigator.geolocation) {
@@ -347,11 +367,18 @@ const handleUseMyLocation = () => {
 
 
   // Delete
-  const handleDelete = async (id: string) => {
-    if (window.confirm("Are you sure you want to delete this record?")) {
-      await deleteDoc(doc(db, "soilTests", id));
-    }
-  };
+  const handleArchive = async (id: string, data: any) => {
+  const archiveRef = doc(db, "archives", id);
+  const mainRef = doc(db, "soilTests", id);
+
+  await setDoc(archiveRef, {
+    ...data,
+    archivedAt: new Date(),
+  });
+
+  await deleteDoc(mainRef);
+};
+
 
   
 
@@ -713,7 +740,8 @@ const handleUseMyLocation = () => {
                         <IonButton
                           size="small"
                           color="danger"
-                          onClick={() => handleDelete(rec.id)}
+                          onClick={() => handleArchive(rec.id, rec)}
+
                         >
                           <IonIcon icon={trashOutline} />
                         </IonButton>
