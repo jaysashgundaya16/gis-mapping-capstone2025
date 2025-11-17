@@ -260,9 +260,7 @@ const Archive: React.FC = () => {
                     <IonIcon icon={createOutline} />
                   </IonButton>
 
-                  <IonButton color="danger" size="small" onClick={() => handlePermanentDelete(item.id)}>
-                    <IonIcon icon={trashOutline} />
-                  </IonButton>
+                  
                 </IonCol>
               </IonRow>
             ))
