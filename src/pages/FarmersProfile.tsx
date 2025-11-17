@@ -44,6 +44,27 @@ import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import L from "leaflet";
 
+const cropIcons: any = {
+  corn: L.icon({
+    iconUrl: "https://maps.google.com/mapfiles/ms/icons/yellow-dot.png",
+    iconSize: [32, 32]
+  }),
+  rice: L.icon({
+    iconUrl: "https://maps.google.com/mapfiles/ms/icons/green-dot.png",
+    iconSize: [32, 32]
+  }),
+  banana: L.icon({
+    iconUrl: "https://maps.google.com/mapfiles/ms/icons/red-dot.png",
+    iconSize: [32, 32]
+  }),
+};
+
+const defaultIcon = L.icon({
+  iconUrl: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
+  iconSize: [32, 32]
+});
+
+
 // 🧭 Custom marker icons
 const currentLocationIcon = L.icon({
   iconUrl: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
@@ -95,7 +116,18 @@ const FarmersProfile: React.FC = () => {
   const mapRef = React.useRef<any>(null);
   const markersRef = React.useRef<any>(null);
   const [editingRecord, setEditingRecord] = useState<SoilTest | null>(null);
-  
+
+  const [selectedCrops, setSelectedCrops] = useState<string[]>([
+  "corn",
+  "rice",
+  "banana"
+]);
+
+const toggleCrop = (crop: string) => {
+  setSelectedCrops((prev) =>
+    prev.includes(crop) ? prev.filter(c => c !== crop) : [...prev, crop]
+  );
+};
 
   // Fetch records
   useEffect(() => {
@@ -134,17 +166,27 @@ useEffect(() => {
   markersRef.current.clearLayers();
 
   // Add all farmer markers (green)
-  filteredRecords.forEach((rec) => {
+  filteredRecords
+  .filter(rec =>
+    selectedCrops.includes(rec.crop?.toLowerCase().trim() || "")
+  )
+  .forEach((rec) => {
     if (rec.lat && rec.lng) {
-      const marker = L.marker([parseFloat(rec.lat), parseFloat(rec.lng)], {
-        icon: farmerIcon,
-      }).addTo(markersRef.current);
+      const cropKey = rec.crop?.toLowerCase().trim();
+      const icon = cropIcons[cropKey] || defaultIcon;
+
+      const marker = L.marker(
+        [parseFloat(rec.lat), parseFloat(rec.lng)],
+        { icon: icon }
+      ).addTo(markersRef.current);
 
       marker.bindPopup(
         `<b>${rec.farmerName}</b><br>${rec.crop}<br>${rec.siteOfFarm}`
       );
     }
   });
+
+
 }, [filteredRecords]);
 
 
@@ -154,7 +196,7 @@ useEffect(() => {
       rec.farmerName?.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredRecords(filtered);
-  }, [searchTerm, records]);
+  }, [searchTerm, records]);  
 
 // ✅ Barangay + Crop Filtering Logic (supports partial match and shows all by default)
 useEffect(() => {
@@ -749,6 +791,7 @@ const handleUseMyLocation = () => {
                   </IonSelect>
                 </IonItem>
               ))}
+
 
               <IonButton expand="block" color="medium" onClick={handleUseMyLocation}>
                 Use My Current Location

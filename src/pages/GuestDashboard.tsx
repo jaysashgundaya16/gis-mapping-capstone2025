@@ -65,7 +65,7 @@ const GuestDashboard: React.FC = () => {
       <IonHeader translucent>
         <IonToolbar className="header-gradient">
           <IonTitle className="dashboard-center-title">
-            🌾 Soil Nutrient Crop Profiling (Guest)
+            🌾 Soil Nutrient Corn Profiling (Guest)
           </IonTitle>
           <IonButtons slot="end">
             <IonButton onClick={() => setShowMapFull(true)}>
