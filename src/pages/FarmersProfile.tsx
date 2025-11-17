@@ -27,6 +27,7 @@ import {
   trashOutline,
   addOutline,
   documentOutline,
+  archiveOutline,
 } from "ionicons/icons";
 import SideMenu from "../components/SideMenu";
 import { db } from "../firebaseConfig";
@@ -739,10 +740,11 @@ const handleUseMyLocation = () => {
                         </IonButton>
                         <IonButton
                           size="small"
-                          color="danger"
+                          color="tertiary"  // you can keep "danger" or change to "tertiary" / "medium" if you like
                           onClick={() => handleArchive(rec.id, rec)}
-
                         >
+                          <IonIcon icon={archiveOutline} />
+
                           <IonIcon icon={trashOutline} />
                         </IonButton>
                         <IonButton
