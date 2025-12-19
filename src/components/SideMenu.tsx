@@ -143,9 +143,6 @@ const SideMenu: React.FC = () => {
                 <IonBadge color="danger" slot="end">{archiveCount}</IonBadge>
               )}
             </IonItem>
-
-            
-         
           </IonMenuToggle>
         </IonList>
       </IonContent>

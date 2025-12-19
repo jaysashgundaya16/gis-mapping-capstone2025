@@ -77,6 +77,8 @@ const Dashboard: React.FC = () => {
   const [placeName, setPlaceName] = useState<string>("");
   const [municipality, setMunicipality] = useState<string>("");
   const [province, setProvince] = useState<string>("");
+  const [farmerName, setFarmerName] = useState('');
+
 
   useEffect(() => {
     const unsub = onSnapshot(collection(db, "soilData"), (snap) => {
@@ -299,6 +301,16 @@ const Dashboard: React.FC = () => {
               </IonButton>
             </div>
           </div>
+
+          <IonItem>
+            <IonLabel position="stacked">Farmer Name</IonLabel>
+            <IonInput
+              value={farmerName}
+              placeholder="Enter farmer name"
+              onIonChange={(e) => setFarmerName(e.detail.value!)}
+            />
+          </IonItem>
+
 
           {/* 🌍 Map */}
           <div style={{ height: "80vh", width: "100%" }}>
