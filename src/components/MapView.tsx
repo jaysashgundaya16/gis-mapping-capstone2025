@@ -537,10 +537,10 @@ useEffect(() => {
             right: "20px",
             zIndex: 9999,
             background: "white",
-            padding: "10px 12px",
+            padding: "20px 25px",
             borderRadius: "8px",
             boxShadow: "0 2px 6px rgba(0,0,0,0.25)",
-            fontSize: "14px",
+            fontSize: "17px",
             lineHeight: "20px",
           }}
         >

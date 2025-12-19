@@ -289,27 +289,10 @@ const Dashboard: React.FC = () => {
                   Search
                 </IonButton>
               </div>
-
-              {/* 🔹 Soil Data Management */}
-              <IonButton
-                fill="clear"
-                className={`soil-data-btn ${showForm ? "active" : ""}`}
-                onClick={() => setShowForm(!showForm)}
-              >
-                <strong>Soil Data Management</strong>
-                <IonIcon icon={chevronDownOutline} slot="end" />
-              </IonButton>
             </div>
           </div>
 
-          <IonItem>
-            <IonLabel position="stacked">Farmer Name</IonLabel>
-            <IonInput
-              value={farmerName}
-              placeholder="Enter farmer name"
-              onIonChange={(e) => setFarmerName(e.detail.value!)}
-            />
-          </IonItem>
+          
 
 
           {/* 🌍 Map */}

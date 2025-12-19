@@ -686,7 +686,7 @@ const handleUseMyLocation = () => {
                   
                   <IonCol style={{ textAlign: "center" }} >Fertilizer Recommendation</IonCol>
                   
-                  <IonCol size="1."></IonCol>
+                  <IonCol size="1.9"></IonCol>
                 </IonRow>
 
                 {filteredRecords.length === 0 ? (
