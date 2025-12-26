@@ -3,12 +3,12 @@
   "private": true,
   "version": "0.0.1",
   "type": "module",
-  "homepage": "https://github.com/jaysashgundaya16/gis-mapping-capstone2025",
   "scripts": {
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist",
     "dev": "vite",
     "build": "tsc && vite build",
+    "vercel-build": "npm run build",
     "preview": "vite preview",
     "test.e2e": "cypress run",
     "test.unit": "vitest",
