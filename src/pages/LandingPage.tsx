@@ -66,7 +66,7 @@ const LandingPage: React.FC = () => {
         {/* ✅ Home Section */}
         <div ref={homeRef} className="section-container">
           <div className="logo-background">
-            <img src="/assets/logo.png" alt="Logo" />
+            <img src="/assets/logo.png" alt="" />
           </div>
 
           <div className="home-content">
